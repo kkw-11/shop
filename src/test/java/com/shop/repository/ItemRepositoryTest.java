@@ -1,7 +1,12 @@
 package com.shop.repository;
 
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shop.contant.ItemSellStatus;
 import com.shop.entity.Item;
+import com.shop.entity.QItem;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @TestPropertySource(locations = "classpath:application-test.yml")
 class ItemRepositoryTest {
+
+    @PersistenceContext
+    private EntityManager em;
 
     @Autowired
     private ItemRepository itemRepository;
@@ -122,5 +130,26 @@ class ItemRepositoryTest {
         List<Item> itemList = itemRepository.findByItemDetail(itemDetail);
 
         assertTrue(itemList.stream().allMatch(item -> item.getItemDetail().contains(itemDetail)));
+    }
+
+    @Test
+    @DisplayName("Querydsl 조회 테스트1")
+    public void queryDslTest(){
+        this.createItemList();
+
+        String detailNm = "테스트 상품 상세 설명";
+
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em);
+        QItem qItem = QItem.item;
+
+        JPAQuery<Item> query = queryFactory.selectFrom(qItem)
+                .where(qItem.itemSellStatus.eq(ItemSellStatus.SELL))
+                .where(qItem.itemDetail.like("%" + detailNm + "%"))
+                .orderBy(qItem.price.desc());
+
+        List<Item> itemList = query.fetch();
+
+        assertTrue(itemList.stream().allMatch(item -> item.getItemDetail().contains(detailNm)));
+
     }
 }
