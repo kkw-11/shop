@@ -17,8 +17,11 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     properties:
       hibernate:
-        show_sql: true    # ?? ??
-        format_sql: true  # ?? ???
+        show_sql: true
+        format_sql: true
+  devtools:
+    livereload:
+      enabled: true
 
 logging:
   level:
@@ -26,4 +29,4 @@ logging:
       hibernate:
         type:
           descriptor:
-            sql: trace #??? ???? ??
+            sql: trace
