@@ -63,4 +63,23 @@ class MemberControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
     }
+
+    @Test
+    @DisplayName("로그인 실패 테스트")
+    public void loginFailTest() throws Exception{
+        //회원가입
+        String email = "test@email.com";
+        String password = "12345678";
+        this.createMember(email, password);
+
+        //Security 로그인 요청
+        mockMvc.perform(formLogin()
+                        .userParameter("email")
+                        .user(email)
+                        .password("1234")
+                        .loginProcessingUrl("/members/login"))
+                .andExpect(unauthenticated())
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/members/login/error"));
+    }
 }
