@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-public class Item {
+public class Item extends BaseEntity {
     @Id
     @Column(name="item_id")
     @GeneratedValue(strategy=GenerationType.AUTO)
@@ -29,6 +29,4 @@ public class Item {
     private String itemDetail;
     @Enumerated(EnumType.STRING)
     private ItemSellStatus itemSellStatus;
-    private LocalDateTime regTime;
-    private LocalDateTime updateTime;
 }

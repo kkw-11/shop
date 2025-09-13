@@ -1,11 +1,10 @@
 package com.shop.config;
 
+import com.shop.contant.Role;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -16,18 +15,25 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http.csrf(csrf -> csrf
+                .ignoringRequestMatchers("/h2-console/**")// 특정 경로만 CSRF 비활성화
+                )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/signup", "/css/**", "/js/**").permitAll() // 인증 없이 접근 허용
+                        .requestMatchers("/", "/members/**", "/item/**", "/images/**", "/thymeleaf/**").permitAll() // 인증 없이 접근 허용
+                        .requestMatchers("/h2-console/**","/css/**", "/js/**", "/img/**").permitAll() // H2 콘솔 접근 허용
+                        .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
                         .anyRequest().authenticated() // 나머지는 인증 필요
                 )
                 .formLogin(form -> form
-                        .loginPage("/login") // 커스텀 로그인 페이지 URL
+                        .loginPage("/members/login") // 커스텀 로그인 페이지 URL
                         .defaultSuccessUrl("/") // 로그인 성공 후 이동
+                        .usernameParameter("email")
+                        .failureUrl("/members/login/error")
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutUrl("/members/logout")
+                        .logoutSuccessUrl("/")
+
             );
 
         return http.build();
@@ -37,5 +43,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
-
 }
