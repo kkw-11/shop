@@ -34,7 +34,12 @@ public class SecurityConfig {
                         .logoutUrl("/members/logout")
                         .logoutSuccessUrl("/")
 
-            );
+            ).exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint()) // 커스텀 인증 예외 처리
+                )
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())); // H2 콘솔 사용 위해
+        ;
+
 
         return http.build();
     }
