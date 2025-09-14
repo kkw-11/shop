@@ -36,7 +36,7 @@ public class Member extends BaseEntity {
         member.setEmail(memberFormDto.getEmail());
         member.setAddress(memberFormDto.getAddress());
         member.setPassword(passwordEncoder.encode(memberFormDto.getPassword()));
-        member.setRole(Role.USER);
+        member.setRole(Role.USER); // 현재는 유저 회원가입만 가능
         return member;
     }
 

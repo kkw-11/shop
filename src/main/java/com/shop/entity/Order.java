@@ -17,9 +17,9 @@ public class Order extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "order_id")
-    private int id;
+    private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
@@ -28,6 +28,6 @@ public class Order extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus; //주문상태
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems = new ArrayList<>();
 }
