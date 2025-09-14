@@ -2,10 +2,12 @@ package com.shop.entity;
 
 import com.shop.contant.ItemSellStatus;
 import com.shop.repository.ItemRepository;
+import com.shop.repository.MemberRepository;
 import com.shop.repository.OrderRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +20,16 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Slf4j
 class OrderTest {
     @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
     private ItemRepository itemRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -36,6 +42,28 @@ class OrderTest {
         item.setItemSellStatus(ItemSellStatus.SELL);
         item.setStockNumber(100);
         return item;
+    }
+
+    public Order createOrder() {
+        Order order = new Order();
+
+        for (int i = 0; i < 3; i++) {
+            Item item = createItem();
+            itemRepository.save(item);
+            OrderItem orderItem = new OrderItem();
+            orderItem.setItem(item);
+            orderItem.setCount(10);
+            orderItem.setOrderPrice(item.getPrice());
+            orderItem.setOrder(order);
+            order.getOrderItems().add(orderItem);
+        }
+
+        Member member = new Member();
+        memberRepository.save(member);
+
+        order.setMember(member);
+        orderRepository.save(order);
+        return order;
     }
 
     @Test
@@ -64,4 +92,13 @@ class OrderTest {
         assertEquals(3, savedOrder.getOrderItems().size());
     }
 
+
+    @Test
+    @DisplayName("고아객체 제거 테스트")
+    public void orphanRemovalTest() {
+        Order order = this.createOrder();
+        order.getOrderItems().remove(0); //OrderItem객체는 고아객체” → “OrderItem 객체는 이제 고아 객체가 되어 DELETE 대상이 됨
+        log.info("======= flush() 호출 =======");
+        em.flush();
+    }
 }
