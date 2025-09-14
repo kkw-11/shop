@@ -6,6 +6,7 @@ import com.shop.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Transactional
 @ActiveProfiles("local")
+@Slf4j
 class CartTest {
 
     @Autowired
@@ -57,6 +59,7 @@ class CartTest {
         em.flush();
         em.clear(); //장바구니 엔티티 조회시 회원 엔티티 같이 가지고 오는지 보기위해 영속성 컨텍스트 초기화
 
+        log.info("======= Cart 엔티티 조회 =======");
         Cart savedCard = cartRepository.findById(cart.getId()).orElseThrow(EntityNotFoundException::new);
 
         assertEquals(savedCard.getMember().getId(), member.getId());
