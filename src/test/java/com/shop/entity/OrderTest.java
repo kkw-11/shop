@@ -3,6 +3,7 @@ package com.shop.entity;
 import com.shop.contant.ItemSellStatus;
 import com.shop.repository.ItemRepository;
 import com.shop.repository.MemberRepository;
+import com.shop.repository.OrderItemRepository;
 import com.shop.repository.OrderRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -30,6 +31,9 @@ class OrderTest {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -100,5 +104,20 @@ class OrderTest {
         order.getOrderItems().remove(0); //OrderItem객체는 고아객체” → “OrderItem 객체는 이제 고아 객체가 되어 DELETE 대상이 됨
         log.info("======= flush() 호출 =======");
         em.flush();
+    }
+
+    @Test
+    @DisplayName("지연 로딩 테스트")
+    public void layLoadingTest(){
+        Order order = this.createOrder();
+        Long orderItemId = order.getOrderItems().get(0).getId();
+        em.flush();
+        em.clear();
+
+        OrderItem orderItem = orderItemRepository.findById(orderItemId).orElseThrow(EntityNotFoundException::new);
+        log.info("Order class : {}", orderItem.getOrder().getClass());
+        log.info("1.=============================");
+        orderItem.getOrder().getOrderDate();
+        log.info("2.=============================");
     }
 }
