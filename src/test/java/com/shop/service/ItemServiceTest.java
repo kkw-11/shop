@@ -116,4 +116,49 @@ class ItemServiceTest {
         assertEquals(multipartFileList.get(0).getOriginalFilename(), itemImgList.get(0).getOriImgName());
 
     }
+
+    @Test
+    @DisplayName("상품 정보 수정 테스트")
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void updateItem() throws Exception{
+        ItemFormDto itemFormDto = this.registerItem(); //등록, 조회
+
+        //given 상품 수정
+        String modifiedItemNm = "수정 상품명";
+        String modifiedItemDetail = "수정 상품 설명";
+        Integer modifiedPrice = 1000;
+        Integer modifiedStockNumber = 100;
+
+        itemFormDto.setItemNm(modifiedItemNm);
+        itemFormDto.setPrice(modifiedPrice);
+        itemFormDto.setStockNumber(modifiedStockNumber);
+        itemFormDto.setItemDetail(modifiedItemDetail);
+        itemFormDto.setItemSellStatus(ItemSellStatus.SOLD_OUT);
+
+        List<MultipartFile> multipartFiles = new ArrayList<>();
+        for (int i = 0; i < itemFormDto.getItemImgDtoList().size(); i++) {
+            ItemImgDto imgDto = itemFormDto.getItemImgDtoList().get(i);
+            multipartFiles.add(new MockMultipartFile(
+                    "itemImgFile",  // 실제 컨트롤러의 파라미터명에 맞게 수정
+                    imgDto.getImgName() != null ? imgDto.getImgName() : "test-image-" + i + ".jpg",
+                    "image/jpeg",
+                    new byte[]{1,2,3,4}  // 테스트용 더미 데이터
+            ));
+        }
+
+        //when 수정 데이터 저장
+        Long savedItemId = itemService.updateItem(itemFormDto, multipartFiles);
+
+        Item item = itemRepository.findById(savedItemId).orElseThrow(EntityNotFoundException::new);
+        List<ItemImg> itemImgList = itemImgRepository.findByItemIdOrderByIdAsc(item.getId());
+
+        //then 수정 데이터 조회, 수정요청 값과 비교
+        assertEquals(itemFormDto.getItemNm(),item.getItemNm());
+        assertEquals(itemFormDto.getItemDetail(),item.getItemDetail());
+        assertEquals(itemFormDto.getStockNumber(),item.getStockNumber());
+        assertEquals(itemFormDto.getPrice(),item.getPrice());
+        assertEquals(itemFormDto.getItemSellStatus(),item.getItemSellStatus());
+        assertEquals(itemFormDto.getItemImgDtoList().size(), itemImgList.size());
+
+    }
 }
