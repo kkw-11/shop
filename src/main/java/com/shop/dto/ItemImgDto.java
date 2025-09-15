@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
-import javax.management.modelmbean.ModelMBean;
-
 @Getter @Setter
 public class ItemImgDto {
 
