@@ -76,6 +76,7 @@ public class ItemController {
         }
 
         try{
+            log.info("상품 수정 요청 itemFormDto : {}", itemFormDto.toString());
             itemService.updateItem(itemFormDto, itemImgFileList);
         }catch (Exception e){
             model.addAttribute("errorMessage", "상품 수정 중 에러가 발생하였습니다.");
