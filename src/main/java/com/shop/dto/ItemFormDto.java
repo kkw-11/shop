@@ -1,6 +1,6 @@
 package com.shop.dto;
 
-import com.shop.contant.ItemSellStatus;
+import com.shop.constant.ItemSellStatus;
 import com.shop.entity.Item;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

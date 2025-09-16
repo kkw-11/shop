@@ -3,7 +3,7 @@ package com.shop.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.shop.contant.ItemSellStatus;
+import com.shop.constant.ItemSellStatus;
 import com.shop.entity.Item;
 import com.shop.entity.QItem;
 import jakarta.persistence.EntityManager;
@@ -16,10 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.thymeleaf.util.StringUtils;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
