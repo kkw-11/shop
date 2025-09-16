@@ -99,6 +99,7 @@ public class ItemController {
         Page<Item> items = itemService.getAdminItemPage(itemSearchDto, pageable);
         model.addAttribute("items", items);
         model.addAttribute("itemFormDto", new ItemFormDto());
+        model.addAttribute("maxPage", 5);
         return "item/itemMng";
     }
 
