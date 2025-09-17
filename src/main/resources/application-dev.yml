@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: shop
+
+  servlet:
+    multipart:
+      # 파일 한 개당 최대 사이즈
+      max-file-size: 20MB
+      # 요청당 최대 파일 크기
+      max-request-size: 100MB
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/shop?serverTimezone=Asia/Seoul
+    username: root
+    password: rootuser
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+    livereload:
+      enabled: true
+
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql: debug
+      springframework:
+        jdbc:
+          datasource: debug
+
+
+# 상품 이미지 업로드 경로
+itemImgLocation: "/home/kkw/myroot/shop/item/"
+
+# 리소스 업로드 경로, 프로젝트 외부에서 파일 찾는 경로
+uploadPath: "file:////home/kkw/myroot/shop/"
