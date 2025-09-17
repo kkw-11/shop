@@ -1,6 +1,7 @@
 package com.shop.controller;
 
 import com.shop.dto.ItemFormDto;
+import com.shop.dto.ItemMngDto;
 import com.shop.dto.ItemSearchDto;
 import com.shop.entity.Item;
 import com.shop.service.ItemService;
@@ -94,12 +95,13 @@ public class ItemController {
 
     @GetMapping(value = {"/admin/items", "/admin/items/{page}"})
     public String itemManage(ItemSearchDto itemSearchDto, @PathVariable("page") Optional<Integer> page, Model model) {
-        Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 3);
+        Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 10);
 
-        Page<Item> items = itemService.getAdminItemPage(itemSearchDto, pageable);
+        Page<ItemMngDto> items = itemService.getItemMngPage(itemSearchDto, pageable);
+        log.info("getTotalPages: {}, items.getNumber : {}, pagesize:{}",items.getTotalPages() ,items.getNumber(), items.getPageable().getPageSize());
         model.addAttribute("items", items);
         model.addAttribute("itemFormDto", new ItemFormDto());
-        model.addAttribute("maxPage", 5);
+        model.addAttribute("maxPage", 10);
         return "item/itemMng";
     }
 
