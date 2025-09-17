@@ -1,6 +1,6 @@
 package com.shop.entity;
 
-import com.shop.contant.OrderStatus;
+import com.shop.constant.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 public class Order extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
     private Long id;
 

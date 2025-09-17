@@ -1,6 +1,6 @@
 package com.shop.service;
 
-import com.shop.contant.ItemSellStatus;
+import com.shop.constant.ItemSellStatus;
 import com.shop.dto.ItemFormDto;
 import com.shop.dto.ItemImgDto;
 import com.shop.entity.Item;

@@ -1,13 +1,11 @@
 package com.shop.entity;
 
-import com.shop.contant.ItemSellStatus;
+import com.shop.constant.ItemSellStatus;
 import com.shop.dto.ItemFormDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name="item")
@@ -17,7 +15,7 @@ import java.time.LocalDateTime;
 public class Item extends BaseEntity {
     @Id
     @Column(name="item_id")
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false, length = 50)
     private String itemNm;
