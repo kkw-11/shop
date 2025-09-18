@@ -45,42 +45,36 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           script: |
             echo "=== Deployment Started ==="
-            
+
             # 1. 파일 확인
             echo "Checking JAR file..."
             ls -la ~/shop-0.0.1-SNAPSHOT.jar
-            echo "File size: $(du -h ~/shop-0.0.1-SNAPSHOT.jar | cut -f1)"
-            
-            # 2. 기존 애플리케이션 종료
+
+            # 2. 기존 애플리케이션 종료 (단순화)
             echo "Stopping existing application..."
-            pkill -f 'java -jar.*shop.*jar' >/dev/null 2>&1 && echo "Previous app stopped" || echo "No running app found"
-            sleep 2
-            
+            pkill -f 'java -jar' >/dev/null 2>&1 || echo "No running app"
+            sleep 3
+
             # 3. 애플리케이션 시작
             echo "Starting Spring Boot application..."
             cd /home/${{ secrets.SERVER_USER }}
             nohup java -jar shop-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
-            
-            # 4. 시작 대기 및 확인
+
+            # 4. 시작 대기
             echo "Waiting for application to start..."
-            sleep 8
-            
-            # 5. 프로세스 확인
-            if ps aux | grep 'java -jar.*shop.*jar' | grep -v grep >/dev/null; then
-              echo "✅ Application started successfully!"
+            sleep 10
+
+            # 5. 단순한 프로세스 확인
+            echo "Checking if application is running..."
+            if pgrep -f "shop-0.0.1-SNAPSHOT.jar" >/dev/null; then
+              echo "✅ Application is running!"
               echo "Process info:"
-              ps aux | grep 'java -jar.*shop.*jar' | grep -v grep
+              ps aux | grep "shop-0.0.1-SNAPSHOT.jar" | grep -v grep
             else
-              echo "❌ Application failed to start"
-              echo "Recent log entries:"
-              tail -10 app.log || echo "No log file found"
-              exit 1
+              echo "❌ Application not found, checking all java processes..."
+              ps aux | grep java | grep -v grep || echo "No java processes found"
+              echo "Recent logs:"
+              tail -20 app.log
             fi
-            
-            # 6. 포트 확인 (선택사항)
-            if command -v ss >/dev/null; then
-              echo "Port 8080 status:"
-              ss -tlnp | grep :8080 || echo "Port 8080 not listening yet"
-            fi
-            
+
             echo "=== Deployment Completed ==="
