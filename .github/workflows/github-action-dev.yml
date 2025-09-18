@@ -44,37 +44,13 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
-            echo "=== Deployment Started ==="
-
-            # 1. 파일 확인
-            echo "Checking JAR file..."
-            ls -la ~/shop-0.0.1-SNAPSHOT.jar
-
-            # 2. 기존 애플리케이션 종료 (단순화)
-            echo "Stopping existing application..."
+            echo "=== Starting deployment ==="
             pkill -f 'java -jar' >/dev/null 2>&1 || echo "No running app"
             sleep 3
-
-            # 3. 애플리케이션 시작
-            echo "Starting Spring Boot application..."
             cd /home/${{ secrets.SERVER_USER }}
-            nohup java -jar shop-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
-
-            # 4. 시작 대기
-            echo "Waiting for application to start..."
-            sleep 30
-
-            # 5. 단순한 프로세스 확인
-            echo "Checking if application is running..."
-            if pgrep -f "shop-0.0.1-SNAPSHOT.jar" >/dev/null; then
-              echo "✅ Application is running!"
-              echo "Process info:"
-              ps aux | grep "shop-0.0.1-SNAPSHOT.jar" | grep -v grep
-            else
-              echo "❌ Application not found, checking all java processes..."
-              ps aux | grep java | grep -v grep || echo "No java processes found"
-              echo "Recent logs:"
-              tail -20 app.log
-            fi
-
-            echo "=== Deployment Completed ==="
+            echo "Starting application with memory optimization..."
+            nohup java -Xmx400m -Xms200m -jar shop-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+            echo "Application started. Check status manually with:"
+            echo "  ps aux | grep java"
+            echo "  ss -tlnp | grep 8080"
+            echo "  tail -f ~/app.log"
