@@ -1,11 +1,11 @@
-name: Build and Test SSH
+name: Optimized Spring Boot Deploy
 
 on:
   push:
     branches: [ feat/deploy ]
 
 jobs:
-  build-and-test:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,38 +21,66 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: List build output
+      - name: Verify build output
         run: |
-          echo "Target directory contents:"
-          ls -la target/
-          echo "JAR files:"
-          find target/ -name "*.jar" -type f
+          echo "JAR file created:"
+          ls -la target/shop-0.0.1-SNAPSHOT.jar
+          du -h target/shop-0.0.1-SNAPSHOT.jar
 
-      - name: Test SSH Connection
+      - name: Copy JAR to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          source: "target/shop-0.0.1-SNAPSHOT.jar"
+          target: "/home/${{ secrets.SERVER_USER }}/"
+          strip_components: 1
+
+      - name: Deploy and start application
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
-            echo "SSH connection successful!"
-            whoami
-            pwd
-
-      - name: Copy JAR to server (alternative)
-        run: |
-          echo "${{ secrets.SERVER_KEY }}" > /tmp/ssh_key
-          chmod 600 /tmp/ssh_key
-          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key target/shop-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/
-
-      - name: Verify JAR on server
-        uses: appleboy/ssh-action@v0.1.5
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_KEY }}
-          script: |
-            echo "Checking for JAR file on server:"
+            echo "=== Deployment Started ==="
+            
+            # 1. 파일 확인
+            echo "Checking JAR file..."
             ls -la ~/shop-0.0.1-SNAPSHOT.jar
-            echo "File size:"
-            du -h ~/shop-0.0.1-SNAPSHOT.jar
+            echo "File size: $(du -h ~/shop-0.0.1-SNAPSHOT.jar | cut -f1)"
+            
+            # 2. 기존 애플리케이션 종료
+            echo "Stopping existing application..."
+            pkill -f 'java -jar.*shop.*jar' >/dev/null 2>&1 && echo "Previous app stopped" || echo "No running app found"
+            sleep 2
+            
+            # 3. 애플리케이션 시작
+            echo "Starting Spring Boot application..."
+            cd /home/${{ secrets.SERVER_USER }}
+            nohup java -jar shop-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+            
+            # 4. 시작 대기 및 확인
+            echo "Waiting for application to start..."
+            sleep 8
+            
+            # 5. 프로세스 확인
+            if ps aux | grep 'java -jar.*shop.*jar' | grep -v grep >/dev/null; then
+              echo "✅ Application started successfully!"
+              echo "Process info:"
+              ps aux | grep 'java -jar.*shop.*jar' | grep -v grep
+            else
+              echo "❌ Application failed to start"
+              echo "Recent log entries:"
+              tail -10 app.log || echo "No log file found"
+              exit 1
+            fi
+            
+            # 6. 포트 확인 (선택사항)
+            if command -v ss >/dev/null; then
+              echo "Port 8080 status:"
+              ss -tlnp | grep :8080 || echo "Port 8080 not listening yet"
+            fi
+            
+            echo "=== Deployment Completed ==="
