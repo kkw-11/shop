@@ -39,14 +39,11 @@ jobs:
             whoami
             pwd
 
-      - name: Copy JAR to server
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_KEY }}
-          source: "target/shop-0.0.1-SNAPSHOT.jar"
-          target: "/home/${{ secrets.SERVER_USER }}/"
+      - name: Copy JAR to server (alternative)
+        run: |
+          echo "${{ secrets.SERVER_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key target/shop-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/
 
       - name: Verify JAR on server
         uses: appleboy/ssh-action@v0.1.5
