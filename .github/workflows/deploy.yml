@@ -39,25 +39,14 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           script: |
             echo "Stopping Java applications..."
-      
-            # 실행 중인 Java 프로세스 확인
-            if pgrep -f 'java -jar' > /dev/null; then
-            echo "Java process found, stopping..."
-            pkill -f 'java -jar' 2>/dev/null || true
-            sleep 5
+  
+            # pkill을 조용하게 실행
+            pkill -f 'java -jar' >/dev/null 2>&1 && echo "Java processes terminated" || echo "No Java processes found"
+            sleep 3
+            pkill -9 -f 'java -jar' >/dev/null 2>&1 && echo "Force killed remaining" || echo "No remaining processes"
             
-            # 아직 살아있으면 강제 종료
-            if pgrep -f 'java -jar' > /dev/null; then
-            echo "Force killing..."
-            pkill -9 -f 'java -jar' 2>/dev/null || true
-            fi
-            echo "Java applications stopped"
-            else
-            echo "No Java applications running"
-            fi
-            
-            exit 0
-
+            echo "Stop completed"
+  
       - name: Copy JAR to server
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/feat/deploy'
         uses: appleboy/scp-action@v0.1.4
