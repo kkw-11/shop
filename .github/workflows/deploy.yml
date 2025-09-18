@@ -38,8 +38,22 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
-            sudo pkill -f 'java -jar' || true
-            sleep 2
+            # Java 프로세스 확인
+            JAVA_PID=$(pgrep -f 'java -jar' || echo "")
+            
+            if [ -n "$JAVA_PID" ]; then
+              echo "Stopping Java application (PID: $JAVA_PID)"
+              kill $JAVA_PID
+              sleep 3
+              # 강제 종료가 필요한 경우
+              if kill -0 $JAVA_PID 2>/dev/null; then
+                echo "Force killing application"
+                kill -9 $JAVA_PID
+              fi
+              echo "Application stopped"
+            else
+              echo "No Java application running"
+            fi
 
       - name: Copy JAR to server
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/feat/deploy'
