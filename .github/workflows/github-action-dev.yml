@@ -1,4 +1,4 @@
-name: github-action-dev.yml
+name: Build and Test SSH
 
 on:
   push:
@@ -38,5 +38,24 @@ jobs:
             echo "SSH connection successful!"
             whoami
             pwd
-            echo "Current directory contents:"
-            ls -la
+
+      - name: Copy JAR to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          source: "target/shop-0.0.1-SNAPSHOT.jar"
+          target: "/home/${{ secrets.SERVER_USER }}/"
+
+      - name: Verify JAR on server
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          script: |
+            echo "Checking for JAR file on server:"
+            ls -la ~/shop-0.0.1-SNAPSHOT.jar
+            echo "File size:"
+            du -h ~/shop-0.0.1-SNAPSHOT.jar
