@@ -2,9 +2,9 @@ name: Deploy Spring Boot to GCP
 
 on:
   push:
-    branches: [ main, master ]  # main 또는 master 브랜치에 push될 때 실행
+    branches: [ main, master, dev, feat/deploy ]  # main 또는 master 브랜치에 push될 때 실행
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, dev, feat/deploy ]
 
 jobs:
   deploy:
