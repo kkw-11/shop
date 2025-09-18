@@ -24,10 +24,10 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     properties:
       hibernate:
-        show_sql: true
-        format_sql: true
+        show_sql: false
+        format_sql: false
     livereload:
-      enabled: true
+      enabled: false
 
 logging:
   level:
@@ -35,10 +35,10 @@ logging:
       hibernate:
         type:
           descriptor:
-            sql: debug
+            sql: warn
       springframework:
         jdbc:
-          datasource: debug
+          datasource: warn
 
 
 # 상품 이미지 업로드 경로

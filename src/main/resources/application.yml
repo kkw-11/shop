@@ -12,9 +12,9 @@ spring:
 
 logging:
   level:
-    org.springframework: debug
-    org.hibernate.SQL: info        # SQL 쿼리 출력
-    org.hibernate.orm.jdbc.bind: trace # 바인딩 값 출력
+    org.springframework: warn
+    org.hibernate.SQL: warn        # SQL 쿼리 출력
+    org.hibernate.orm.jdbc.bind: warn # 바인딩 값 출력
 
 # 상품 이미지 업로드 경로
 itemImgLocation: "/Users/kim/myroot/shop/item/"
