@@ -40,15 +40,23 @@ jobs:
           script: |
             echo "Stopping Java applications..."
       
-            pkill -f 'java -jar' && echo "Java processes terminated" || echo "No Java processes found"
+            # 실행 중인 Java 프로세스 확인
+            if pgrep -f 'java -jar' > /dev/null; then
+            echo "Java process found, stopping..."
+            pkill -f 'java -jar' 2>/dev/null || true
+            sleep 5
             
-            # 잠시 대기
-            sleep 3
+            # 아직 살아있으면 강제 종료
+            if pgrep -f 'java -jar' > /dev/null; then
+            echo "Force killing..."
+            pkill -9 -f 'java -jar' 2>/dev/null || true
+            fi
+            echo "Java applications stopped"
+            else
+            echo "No Java applications running"
+            fi
             
-            # 강제 종료 (혹시 남아있다면)
-            pkill -9 -f 'java -jar' && echo "Force killed remaining processes" || echo "No remaining processes"
-            
-            echo "Stop completed"
+            exit 0
 
       - name: Copy JAR to server
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/feat/deploy'
