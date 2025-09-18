@@ -38,31 +38,17 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
-            # 모든 Java 프로세스 종료
-            echo "Checking for running Java applications..."
-            JAVA_PIDS=$(pgrep -f 'java -jar' || echo "")
-
-            if [ -n "$JAVA_PIDS" ]; then
-              echo "Found Java applications with PIDs: $JAVA_PIDS"
-              echo "Stopping all Java applications..."
-
-              # 모든 Java 프로세스에 SIGTERM 보내기
-              pkill -f 'java -jar' || true
-              sleep 5
-
-              # 아직 살아있는 프로세스가 있으면 강제 종료
-              REMAINING=$(pgrep -f 'java -jar' || echo "")
-              if [ -n "$REMAINING" ]; then
-                echo "Force killing remaining processes: $REMAINING"
-                pkill -9 -f 'java -jar' || true
-              fi
-
-              echo "All Java applications stopped"
-            else
-              echo "No Java application running"
-            fi
-
-            echo "Stop process completed successfully"
+            echo "Stopping Java applications..."
+      
+            pkill -f 'java -jar' && echo "Java processes terminated" || echo "No Java processes found"
+            
+            # 잠시 대기
+            sleep 3
+            
+            # 강제 종료 (혹시 남아있다면)
+            pkill -9 -f 'java -jar' && echo "Force killed remaining processes" || echo "No remaining processes"
+            
+            echo "Stop completed"
 
       - name: Copy JAR to server
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/feat/deploy'
