@@ -15,8 +15,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/shop?serverTimezone=Asia/Seoul
-    username: root
-    password: rootuser
+    username: shopuser
+    password: shoppassword
 
   jpa:
     hibernate:
