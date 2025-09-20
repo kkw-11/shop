@@ -46,11 +46,8 @@ jobs:
           script: |
             echo "=== Starting deployment ==="
             pkill -f 'java -jar' >/dev/null 2>&1 || echo "No running app"
-            sleep 3
+            sleep 5  # 프로세스 완전 종료 대기
             cd /home/${{ secrets.SERVER_USER }}
-            echo "Starting application with memory optimization..."
+            echo "Starting application with dev profile..."
             nohup java -Xmx400m -Xms200m -jar shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev > app.log 2>&1 &
-            echo "Application started. Check status manually with:"
-            echo "  ps aux | grep java"
-            echo "  ss -tlnp | grep 8080"
-            echo "  tail -f ~/app.log"
+            echo "Application restarted successfully"
