@@ -49,7 +49,7 @@ jobs:
             sleep 3
             cd /home/${{ secrets.SERVER_USER }}
             echo "Starting application with memory optimization..."
-            nohup java -Xmx400m -Xms200m -jar shop-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+            nohup java -Xmx400m -Xms200m -jar shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev > app.log 2>&1 &
             echo "Application started. Check status manually with:"
             echo "  ps aux | grep java"
             echo "  ss -tlnp | grep 8080"
