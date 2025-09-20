@@ -42,7 +42,7 @@ logging:
 
 
 # 상품 이미지 업로드 경로
-itemImgLocation: "/home/kkw/myroot/shop/item/"
+itemImgLocation: "/home/ubuntu/myroot/shop/item/"
 
 # 리소스 업로드 경로, 프로젝트 외부에서 파일 찾는 경로
-uploadPath: "file:////home/kkw/myroot/shop/"
+uploadPath: "file:////home/ubuntu/myroot/shop/"
