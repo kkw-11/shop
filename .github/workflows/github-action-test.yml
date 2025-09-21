@@ -57,11 +57,31 @@ jobs:
             
             cd /home/${{ secrets.TEST_SERVER_USER }}
             echo "Starting application with minimal memory settings..."
-            # 메모리를 더 작게 설정
-            nohup java -Xmx100m -Xms30m -jar shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev > app.log 2>&1 &
+            # 더 안전한 백그라운드 실행 방법
+            setsid java -Xmx100m -Xms30m -jar shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev > app.log 2>&1 &
+            JAVA_PID=$!
+            echo "Started Java process with PID: $JAVA_PID"
             
             echo "Waiting for application to start (60 seconds)..."
-            sleep 60
+            # 10초마다 상태 확인하면서 대기
+            for i in {1..6}; do
+                sleep 10
+                echo "[$((i*10))s] Checking process status..."
+                if pgrep -f "shop-0.0.1-SNAPSHOT.jar" > /dev/null; then
+                    echo "Process is running"
+                    if [ -f app.log ]; then
+                        echo "Last 5 lines of log:"
+                        tail -5 app.log
+                    fi
+                else
+                    echo "Process not found - checking logs..."
+                    if [ -f app.log ]; then
+                        tail -10 app.log
+                    else
+                        echo "No log file found"
+                    fi
+                fi
+            done
             
             # 프로세스 확인
             if pgrep -f "shop-0.0.1-SNAPSHOT.jar" > /dev/null; then
