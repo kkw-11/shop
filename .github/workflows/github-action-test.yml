@@ -56,20 +56,25 @@ jobs:
             sleep 5
             
             cd /home/${{ secrets.TEST_SERVER_USER }}
-            echo "Starting application with reduced memory settings..."
-            # 메모리 설정을 171MB 이하로 조정
-            nohup java -Xmx150m -Xms50m -jar shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev > app.log 2>&1 &
+            echo "Starting application with minimal memory settings..."
+            # 메모리를 더 작게 설정
+            nohup java -Xmx100m -Xms30m -jar shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev > app.log 2>&1 &
             
-            echo "Waiting for application to start..."
-            sleep 10
+            echo "Waiting for application to start (60 seconds)..."
+            sleep 60
             
             # 프로세스 확인
             if pgrep -f "shop-0.0.1-SNAPSHOT.jar" > /dev/null; then
                 echo "✅ Application started successfully"
                 echo "Process ID: $(pgrep -f shop-0.0.1-SNAPSHOT.jar)"
+                echo "Memory usage:"
+                ps aux | grep shop-0.0.1-SNAPSHOT.jar | grep -v grep
             else
                 echo "❌ Application failed to start"
-                echo "Error log:"
-                tail -20 app.log
+                echo "Last 30 lines of error log:"
+                tail -30 app.log
+                echo "=== System status ==="
+                free -h
+                ps aux | grep java
                 exit 1
             fi
