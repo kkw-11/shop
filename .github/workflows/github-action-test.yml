@@ -38,82 +38,35 @@ jobs:
           target: "/home/${{ secrets.TEST_SERVER_USER }}/"
           strip_components: 1
 
-      - name: Deploy and start application
+      - name: Deploy and restart application
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.TEST_SERVER_HOST }}
           username: ${{ secrets.TEST_SERVER_USER }}
           key: ${{ secrets.TEST_SERVER_KEY }}
           script: |
-            echo "=== Starting deployment ==="
-            echo "Checking system resources..."
-            free -h
-            echo "Available disk space:"
-            df -h /
+            echo "=== Restarting Shop Application Service ==="
             
-            # 기존 프로세스 종료
-            pkill -f 'shop-0.0.1-SNAPSHOT.jar' >/dev/null 2>&1 || echo "No running app"
-            sleep 5
+            # 서비스 재시작
+            sudo systemctl restart shop-app
             
-            cd /home/${{ secrets.TEST_SERVER_USER }}
-            echo "Starting application with minimal memory settings..."
-            # systemd 방식으로 서비스 등록
-            cat > /tmp/shop-app.service << EOF
-            [Unit]
-            Description=Shop Application
-            After=network.target
-
-            [Service]
-            Type=simple
-            User=ubuntu
-            WorkingDirectory=/home/ubuntu
-            ExecStart=/usr/bin/java -Xmx100m -Xms30m -jar /home/ubuntu/shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
-            Restart=always
-            RestartSec=10
-            StandardOutput=journal
-            StandardError=journal
-
-            [Install]
-            WantedBy=multi-user.target
-            EOF
-            
-            # 서비스 파일 이동 및 등록
-            sudo mv /tmp/shop-app.service /etc/systemd/system/
-            sudo systemctl daemon-reload
-            sudo systemctl stop shop-app || echo "Service not running"
-            sudo systemctl start shop-app
-            
-            echo "Waiting for application to start..."
+            echo "Waiting for service to start..."
             sleep 30
             
             # 서비스 상태 확인
             if sudo systemctl is-active --quiet shop-app; then
-                echo "✅ Application started successfully as systemd service"
+                echo "✅ Application restarted successfully"
                 echo "Service status:"
-                sudo systemctl status shop-app --no-pager
-                echo "Application logs:"
-                sudo journalctl -u shop-app --no-pager -n 10
+                sudo systemctl status shop-app --no-pager -l
+                echo "Recent logs:"
+                sudo journalctl -u shop-app --no-pager -n 15 --since "1 minute ago"
+                echo "Process info:"
+                pgrep -f shop-0.0.1-SNAPSHOT.jar
             else
-                echo "❌ Application failed to start"
+                echo "❌ Application failed to restart"
                 echo "Service status:"
-                sudo systemctl status shop-app --no-pager
+                sudo systemctl status shop-app --no-pager -l
                 echo "Error logs:"
                 sudo journalctl -u shop-app --no-pager -n 20
-                exit 1
-            fi
-            
-            # 프로세스 확인
-            if pgrep -f "shop-0.0.1-SNAPSHOT.jar" > /dev/null; then
-                echo "✅ Application started successfully"
-                echo "Process ID: $(pgrep -f shop-0.0.1-SNAPSHOT.jar)"
-                echo "Memory usage:"
-                ps aux | grep shop-0.0.1-SNAPSHOT.jar | grep -v grep
-            else
-                echo "❌ Application failed to start"
-                echo "Last 30 lines of error log:"
-                tail -30 app.log
-                echo "=== System status ==="
-                free -h
-                ps aux | grep java
                 exit 1
             fi
