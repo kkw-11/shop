@@ -38,10 +38,13 @@ public class Order extends BaseEntity {
 
     public static Order createOrder(Member member, List<OrderItem> orderItemList) {
         Order order = new Order();
+
+        //연관관계 세팅
         order.setMember(member);
         for(OrderItem orderItem : orderItemList) {
             order.addOrderItem(orderItem);
         }
+
         order.setOrderStatus(OrderStatus.ORDER);
         order.setOrderDate(LocalDateTime.now());
         return order;
@@ -53,5 +56,10 @@ public class Order extends BaseEntity {
             totalPrice += orderItem.getTotalPrice();
         }
         return totalPrice;
+    }
+
+    public void cancelOrder(){
+        this.orderStatus = OrderStatus.CANCEL;
+        orderItems.stream().forEach(orderItem -> orderItem.cancel());
     }
 }
