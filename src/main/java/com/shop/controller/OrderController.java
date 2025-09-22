@@ -2,7 +2,6 @@ package com.shop.controller;
 
 import com.shop.dto.OrderDto;
 import com.shop.dto.OrderHistDto;
-import com.shop.entity.Order;
 import com.shop.repository.OrderRepository;
 import com.shop.service.OrderService;
 import jakarta.validation.Valid;
@@ -63,5 +62,14 @@ public class OrderController {
 
         return "order/orderhist";
 
+    }
+
+    @PostMapping("/order/{orderId}/cancel")
+    public @ResponseBody ResponseEntity cancelOrder(@PathVariable("orderId") Long orderId, Principal principal) {
+        if(!orderService.validateOrder(orderId, principal.getName())){
+            return new ResponseEntity("주문 취소 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
+        orderService.cancelOrder(orderId);
+        return new ResponseEntity(orderId, HttpStatus.OK);
     }
 }
