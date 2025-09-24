@@ -72,4 +72,25 @@ class CartServiceTest {
         assertEquals(cartItemDto.getCount(), cartItem.getCount());
 
     }
+
+    @Test
+    @DisplayName("장바구니 수량 업데이트 테스트")
+    public void updateCartItemCountTest(){
+        Item item = saveItem();
+        Member member = saveMember();
+
+        CartItemDto cartItemDto = new CartItemDto();
+        cartItemDto.setCount(4);
+        cartItemDto.setItemId(item.getId());
+
+        Long cartItemId = cartService.addCart(cartItemDto, member.getEmail());
+
+        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(RuntimeException::new);
+
+        int count = cartItem.getCount() + 1;
+        cartService.updateCartItemCount(cartItemId, count);
+
+        assertEquals(count, cartItem.getCount());
+
+    }
 }
