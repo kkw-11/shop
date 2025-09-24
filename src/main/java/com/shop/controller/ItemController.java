@@ -3,7 +3,6 @@ package com.shop.controller;
 import com.shop.dto.ItemFormDto;
 import com.shop.dto.ItemMngDto;
 import com.shop.dto.ItemSearchDto;
-import com.shop.entity.Item;
 import com.shop.service.ItemService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
