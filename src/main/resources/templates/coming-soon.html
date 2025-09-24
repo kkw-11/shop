@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}"
+>
+<head>
+    <title th:text="${title}">Coming Soon</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h2 th:text="${title}">준비 중입니다 🚧</h2>
+        <p>빠른 시일 내에 제공될 예정이니 조금만 기다려주세요!</p>
+    </div>
+</body>
+</html>
