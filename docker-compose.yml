@@ -25,7 +25,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_PROFILES_ACTIVE: dev
     restart: unless-stopped
 
   nginx:
