@@ -2,7 +2,7 @@ name: Test Server Spring Boot Deploy
 
 on:
   push:
-    branches: [ feat/test-deploy ]  # 테스트 브랜치
+    branches: [ feat/test-deploy, feat/actuator ]  # 테스트 브랜치
   workflow_dispatch:  # 수동 실행 가능
 
 jobs:
