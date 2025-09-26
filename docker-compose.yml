@@ -1,0 +1,44 @@
+version: "3.3"
+
+services:
+  mysql:
+    image: mysql:9.0
+    container_name: shop-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: shop
+      MYSQL_USER: shopuser
+      MYSQL_PASSWORD: shoppassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: shop-app
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: shop-nginx
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./uploads:/usr/share/nginx/html/uploads
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
