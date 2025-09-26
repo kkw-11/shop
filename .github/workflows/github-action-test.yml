@@ -1,9 +1,9 @@
-name: Test Server Spring Boot Deploy
+name: Docker Compose Deploy
 
 on:
   push:
-    branches: [ feat/test-deploy, feat/actuator ]  # 테스트 브랜치
-  workflow_dispatch:  # 수동 실행 가능
+    branches: [ feat/test-deploy ]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -28,45 +28,50 @@ jobs:
           ls -la target/shop-0.0.1-SNAPSHOT.jar
           du -h target/shop-0.0.1-SNAPSHOT.jar
 
-      - name: Copy JAR to test server
+      - name: Copy deployment files to server
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.TEST_SERVER_HOST }}
           username: ${{ secrets.TEST_SERVER_USER }}
           key: ${{ secrets.TEST_SERVER_KEY }}
-          source: "target/shop-0.0.1-SNAPSHOT.jar"
-          target: "/home/${{ secrets.TEST_SERVER_USER }}/"
-          strip_components: 1
+          source: "target/shop-0.0.1-SNAPSHOT.jar,docker-compose.yml,Dockerfile,nginx/,src/main/resources/application-prod.yml"
+          target: "/home/${{ secrets.TEST_SERVER_USER }}/shop-app/"
+          strip_components: 0
 
-      - name: Deploy and restart application
+      - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.TEST_SERVER_HOST }}
           username: ${{ secrets.TEST_SERVER_USER }}
           key: ${{ secrets.TEST_SERVER_KEY }}
           script: |
-            echo "=== Restarting Shop Application Service ==="
+            cd /home/${{ secrets.TEST_SERVER_USER }}/shop-app/
             
-            # 서비스 재시작
-            sudo systemctl restart shop-app
+            echo "=== Stopping existing containers ==="
+            docker-compose down || true
             
-            echo "Waiting for service to start..."
+            echo "=== Removing old images ==="
+            docker image prune -f
+            
+            echo "=== Starting new deployment ==="
+            docker-compose up -d --build
+            
+            echo "=== Waiting for services to start ==="
             sleep 30
             
-            # 서비스 상태 확인
-            if sudo systemctl is-active --quiet shop-app; then
-                echo "✅ Application restarted successfully"
-                echo "Service status:"
-                sudo systemctl status shop-app --no-pager -l
-                echo "Recent logs:"
-                sudo journalctl -u shop-app --no-pager -n 15 --since "1 minute ago"
-                echo "Process info:"
-                pgrep -f shop-0.0.1-SNAPSHOT.jar
-            else
-                echo "❌ Application failed to restart"
-                echo "Service status:"
-                sudo systemctl status shop-app --no-pager -l
-                echo "Error logs:"
-                sudo journalctl -u shop-app --no-pager -n 20
-                exit 1
-            fi
+            echo "=== Checking container status ==="
+            docker-compose ps
+            
+            echo "=== Checking application health ==="
+            for i in {1..10}; do
+              if curl -f http://localhost/actuator/health; then
+                echo "✅ Application is healthy!"
+                break
+              else
+                echo "Attempt $i: Application not ready yet, waiting 10 seconds..."
+                sleep 10
+              fi
+            done
+            
+            echo "=== Recent application logs ==="
+            docker-compose logs --tail=50 app
