@@ -35,13 +35,14 @@ management:
       exposure:
         include: health,info
   metrics:
-    export:
-      prometheus:
-        enabled: false
     binders:
       processor: false
       system: false
       jvm: false
+  prometheus:
+    metrics:
+      export:
+        enabled: false
 
 logging:
   level:
