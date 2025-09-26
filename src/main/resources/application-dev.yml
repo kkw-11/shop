@@ -33,16 +33,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
-  metrics:
-    binders:
-      processor: false
-      system: false
-      jvm: false
-  prometheus:
-    metrics:
-      export:
-        enabled: false
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
 
 logging:
   level:
