@@ -50,6 +50,9 @@ jobs:
             echo "=== Stopping existing containers ==="
             docker-compose down || true
             
+            echo "=== Mkdir image directory ==="
+            mkdir -p /home/${{ secrets.TEST_SERVER_USER }}/shop-app/uploads/item
+            
             echo "=== Removing old images ==="
             docker image prune -f
             
