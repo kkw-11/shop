@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8080
 
 spring:
   application:
@@ -28,6 +28,20 @@ spring:
         format_sql: false
     livereload:
       enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+    binders:
+      processor: false
+      system: false
+      jvm: false
 
 logging:
   level:
