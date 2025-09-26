@@ -46,5 +46,5 @@ logging:
 # 상품 이미지 업로드 경로
 itemImgLocation: "/Users/kim/myroot/shop/item/"
 
-# 리소스 업로드 경로, 프로젝트 외부에서 파일 찾는 경로
-uploadPath: "file:////Users/kim/myroot/shop/"
+# 리소스 다운로드 경로, 프로젝트 외부에서 파일 찾는 경로
+resourcePath: "file:////Users/kim/myroot/shop/"
