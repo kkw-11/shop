@@ -26,6 +26,7 @@ services:
       - ./uploads:/app/uploads
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     restart: unless-stopped
 
   nginx:
