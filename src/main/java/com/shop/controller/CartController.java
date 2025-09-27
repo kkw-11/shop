@@ -26,7 +26,7 @@ import java.util.List;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@Tag(name = "장바구니 관리", description = "장바구니 관련 API")
+@Tag(name = "장바구니", description = "장바구니 관련 API")
 public class CartController {
     private final CartService cartService;
 
