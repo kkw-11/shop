@@ -49,6 +49,17 @@ logging:
         jdbc:
           datasource: warn
 
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+
 
 # 상품 이미지 업로드 경로
 itemImgLocation: "/app/uploads/item/"  # 컨테이너 내부 경로

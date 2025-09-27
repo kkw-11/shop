@@ -40,8 +40,15 @@ logging:
         jdbc:
           datasource: debug
 
-
-
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
 
 # 상품 이미지 업로드 경로
 itemImgLocation: "/Users/kim/myroot/shop/item/"
