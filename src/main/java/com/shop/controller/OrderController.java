@@ -4,6 +4,10 @@ import com.shop.dto.OrderDto;
 import com.shop.dto.OrderHistDto;
 import com.shop.repository.OrderRepository;
 import com.shop.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,11 +27,18 @@ import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
+@Tag(name = "주문", description = "주문 관련 API")
 public class OrderController {
     private final OrderRepository orderRepository;
     private final OrderService orderService;
 
     @PostMapping(value = "/order")
+    @Operation(summary = "주문요청", description = "주문 생성 요청")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공"),
+            @ApiResponse(responseCode = "400", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
     public @ResponseBody ResponseEntity order(@RequestBody @Valid OrderDto orderDto, BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
             StringBuilder sb = new StringBuilder();
@@ -64,6 +75,12 @@ public class OrderController {
 
     }
 
+    @Operation(summary = "주문취소", description = "주문 취소 요청")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "요청 성공"),
+            @ApiResponse(responseCode = "400", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
     @PostMapping("/order/{orderId}/cancel")
     public @ResponseBody ResponseEntity cancelOrder(@PathVariable("orderId") Long orderId, Principal principal) {
         if(!orderService.validateOrder(orderId, principal.getName())){

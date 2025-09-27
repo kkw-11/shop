@@ -14,7 +14,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/shop?serverTimezone=Asia/Seoul
+    url: jdbc:mysql://mysql:3306/shop?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useUnicode=true
     username: shopuser
     password: shoppassword
 
@@ -40,9 +40,17 @@ logging:
         jdbc:
           datasource: warn
 
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+
 
 # 상품 이미지 업로드 경로
-itemImgLocation: "/home/ubuntu/myroot/shop/item/"
-
-# 리소스 업로드 경로, 프로젝트 외부에서 파일 찾는 경로
-uploadPath: "file:////home/ubuntu/myroot/shop/"
+itemImgLocation: "/app/uploads/item/"  # 컨테이너 내부 경로

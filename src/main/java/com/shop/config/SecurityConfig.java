@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/", "/members/**", "/item/**", "/images/**", "/thymeleaf/**").permitAll() // 인증 없이 접근 허용
                         .requestMatchers("/h2-console/**","/css/**", "/js/**", "/img/**").permitAll() // H2 콘솔 접근 허용
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
                         .anyRequest().authenticated() // 나머지는 인증 필요
                 )
