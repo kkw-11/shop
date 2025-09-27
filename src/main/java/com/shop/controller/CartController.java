@@ -3,6 +3,7 @@ package com.shop.controller;
 import com.shop.dto.CartDetailDto;
 import com.shop.dto.CartItemDto;
 import com.shop.dto.CartOrderDto;
+import com.shop.dto.common.ErrorResponse;
 import com.shop.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -108,12 +109,14 @@ public class CartController {
         List<CartOrderDto> cartOrderDtoList = cartOrderDto.getCartOrderDtoList();
 
         if(cartOrderDtoList == null || cartOrderDtoList.size() == 0){
-            return new ResponseEntity<String>("주문할 상품을 선택해주세요.",HttpStatus.BAD_REQUEST);
+            ErrorResponse errorResponse = new ErrorResponse("주문할 상품을 선택해주세요.");
+            return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
         }
 
         for(CartOrderDto cartOrder : cartOrderDtoList){
             if(!cartService.validateCartItem(cartOrder.getCartItemId(), principal.getName())){
-                return new ResponseEntity<String>("주문 권한이 없습니다.", HttpStatus.FORBIDDEN);
+                ErrorResponse errorResponse = new ErrorResponse("주문 권한이 없습니다.");
+                return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.FORBIDDEN);
             }
         }
 
