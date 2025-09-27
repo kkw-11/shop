@@ -1,8 +1,9 @@
-name: Optimized Spring Boot Deploy
+name: Docker Compose Deploy
 
 on:
   push:
-    branches: [ feat/deploy ]
+    branches: [ dev ]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -27,27 +28,53 @@ jobs:
           ls -la target/shop-0.0.1-SNAPSHOT.jar
           du -h target/shop-0.0.1-SNAPSHOT.jar
 
-      - name: Copy JAR to server
+      - name: Copy deployment files to server
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_KEY }}
-          source: "target/shop-0.0.1-SNAPSHOT.jar"
-          target: "/home/${{ secrets.SERVER_USER }}/"
-          strip_components: 1
+          host: ${{ secrets.TEST_SERVER_HOST }}
+          username: ${{ secrets.TEST_SERVER_USER }}
+          key: ${{ secrets.TEST_SERVER_KEY }}
+          source: "target/shop-0.0.1-SNAPSHOT.jar,docker-compose.yml,Dockerfile,nginx/,src/main/resources/application-prod.yml"
+          target: "/home/${{ secrets.TEST_SERVER_USER }}/shop-app/"
+          strip_components: 0
 
-      - name: Deploy and start application
+      - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@v0.1.5
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_KEY }}
+          host: ${{ secrets.TEST_SERVER_HOST }}
+          username: ${{ secrets.TEST_SERVER_USER }}
+          key: ${{ secrets.TEST_SERVER_KEY }}
           script: |
-            echo "=== Starting deployment ==="
-            pkill -f 'java -jar' >/dev/null 2>&1 || echo "No running app"
-            sleep 5  # 프로세스 완전 종료 대기
-            cd /home/${{ secrets.SERVER_USER }}
-            echo "Starting application with dev profile..."
-            nohup java -Xmx400m -Xms200m -jar shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev > app.log 2>&1 &
-            echo "Application restarted successfully"
+            cd /home/${{ secrets.TEST_SERVER_USER }}/shop-app/
+            
+            echo "=== Stopping existing containers ==="
+            docker-compose down || true
+            
+            echo "=== Mkdir image directory ==="
+            mkdir -p /home/${{ secrets.TEST_SERVER_USER }}/shop-app/uploads/item
+            
+            echo "=== Removing old images ==="
+            docker image prune -f
+            
+            echo "=== Starting new deployment ==="
+            docker-compose up -d --build
+            
+            echo "=== Waiting for services to start ==="
+            sleep 30
+            
+            echo "=== Checking container status ==="
+            docker-compose ps
+            
+            echo "=== Checking application health ==="
+            for i in {1..10}; do
+              if curl -f http://localhost/actuator/health; then
+                echo "✅ Application is healthy!"
+                break
+              else
+                echo "Attempt $i: Application not ready yet, waiting 10 seconds..."
+                sleep 10
+              fi
+            done
+            
+            echo "=== Recent application logs ==="
+            docker-compose logs --tail=50 app
