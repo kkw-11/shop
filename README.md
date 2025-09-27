@@ -10,8 +10,11 @@
     
 
 ### 1-1. 프로젝트 아키텍처
-
+- 아키텍처
 <img width="1380" height="362" alt="image" src="https://github.com/user-attachments/assets/e2e58919-e24d-408d-a380-32adf08ed8dc" />
+
+- ERD
+<img width="1588" height="1096" alt="image" src="https://github.com/user-attachments/assets/3aff1dc9-8544-4260-be7c-14a65027be8f" />
 
 
 ### 1-2. 사용 기술
