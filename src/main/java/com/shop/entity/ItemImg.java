@@ -5,7 +5,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "item_img")
+@Table(name = "item_img",
+        indexes = {
+                @Index(name = "idx_item_img_item_rep",
+                        columnList = "item_id, rep_img_yn")
+        })
 @Getter @Setter
 public class ItemImg extends BaseEntity {
 
