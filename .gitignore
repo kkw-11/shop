@@ -39,3 +39,5 @@ src/main/resources/templates/thymeleafEx/*
 /uploads/*
 
 src/main/java/com/shop/config/WebMvcConfig.java
+
+src/main/resources/application-local.yml
