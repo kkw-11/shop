@@ -1,5 +1,5 @@
 server:
-  port: 80
+  port: 8080
 
 spring:
   application:
@@ -14,7 +14,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/shop?serverTimezone=Asia/Seoul
+    url: jdbc:mysql://mysql:3306/shop?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useUnicode=true
     username: root
     password: rootuser
 
@@ -46,5 +46,5 @@ logging:
 # 상품 이미지 업로드 경로
 itemImgLocation: "/Users/kim/myroot/shop/item/"
 
-# 리소스 업로드 경로, 프로젝트 외부에서 파일 찾는 경로
-uploadPath: "file:////Users/kim/myroot/shop/"
+# 리소스 다운로드 경로, 프로젝트 외부에서 파일 찾는 경로
+resourcePath: "file:////Users/kim/myroot/shop/"

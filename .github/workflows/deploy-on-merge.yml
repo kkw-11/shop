@@ -1,17 +1,21 @@
-name: Docker Compose Deploy
+name: Deploy on PR Merge
 
 on:
-  push:
+  pull_request:
+    types: [ closed ]
     branches: [ dev ]
-  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # PR이 merge되었을 때만 실행
+    if: github.event.pull_request.merged == true
 
     steps:
-      - name: Checkout code
+      - name: Checkout merged code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -31,27 +35,30 @@ jobs:
       - name: Copy deployment files to server
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.TEST_SERVER_HOST }}
-          username: ${{ secrets.TEST_SERVER_USER }}
-          key: ${{ secrets.TEST_SERVER_KEY }}
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
           source: "target/shop-0.0.1-SNAPSHOT.jar,docker-compose.yml,Dockerfile,nginx/,src/main/resources/application-prod.yml"
-          target: "/home/${{ secrets.TEST_SERVER_USER }}/shop-app/"
+          target: "/home/${{ secrets.SERVER_USER }}/shop-app/"
           strip_components: 0
 
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@v0.1.5
         with:
-          host: ${{ secrets.TEST_SERVER_HOST }}
-          username: ${{ secrets.TEST_SERVER_USER }}
-          key: ${{ secrets.TEST_SERVER_KEY }}
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
           script: |
-            cd /home/${{ secrets.TEST_SERVER_USER }}/shop-app/
+            cd /home/${{ secrets.SERVER_USER }}/shop-app/
+            
+            echo "=== PR #${{ github.event.pull_request.number }} merged by ${{ github.event.pull_request.user.login }} ==="
+            echo "=== Deploying to dev environment ==="
             
             echo "=== Stopping existing containers ==="
             docker-compose down || true
             
             echo "=== Mkdir image directory ==="
-            mkdir -p /home/${{ secrets.TEST_SERVER_USER }}/shop-app/uploads/item
+            mkdir -p /home/${{ secrets.SERVER_USER }}/shop-app/uploads/item
             
             echo "=== Removing old images ==="
             docker image prune -f
@@ -79,27 +86,11 @@ jobs:
             echo "=== Recent application logs ==="
             docker-compose logs --tail=50 app
 
-      - name: Copy JAR to server
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_KEY }}
-          source: "target/shop-0.0.1-SNAPSHOT.jar"
-          target: "/home/${{ secrets.SERVER_USER }}/"
-          strip_components: 1
-
-      - name: Deploy and start application
-        uses: appleboy/ssh-action@v0.1.5
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_KEY }}
-          script: |
-            echo "=== Starting deployment ==="
-            pkill -f 'java -jar' >/dev/null 2>&1 || echo "No running app"
-            sleep 5  # 프로세스 완전 종료 대기
-            cd /home/${{ secrets.SERVER_USER }}
-            echo "Starting application with dev profile..."
-            nohup java -Xmx400m -Xms200m -jar shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev > app.log 2>&1 &
-            echo "Application restarted successfully"
+      - name: Notify deployment result
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Deployment successful for PR #${{ github.event.pull_request.number }}"
+          else
+            echo "❌ Deployment failed for PR #${{ github.event.pull_request.number }}"
+          fi
