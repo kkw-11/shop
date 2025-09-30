@@ -60,21 +60,30 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
     public Page<ItemMngDto> getItemMngPage(ItemSearchDto itemSearchDto, Pageable pageable) {
         QItem qItem = QItem.item;
 
-        QueryResults<ItemMngDto> results = queryFactory
-                .select(new QItemMngDto(qItem.id, qItem.itemNm, qItem.itemSellStatus, qItem.createdBy ,qItem.regTime))
+        // 1. 데이터 조회
+        List<ItemMngDto> items = queryFactory
+                .select(new QItemMngDto(qItem.id, qItem.itemNm, qItem.itemSellStatus, qItem.createdBy, qItem.regTime))
                 .from(qItem)
                 .where(regDtsAfter(itemSearchDto.getSearchDateType()),
                         searchSellStatusEq(itemSearchDto.getSearchSellStatus()),
                         searchByLike(itemSearchDto.getSearchBy(),
                                 itemSearchDto.getSearchQuery()))
-                .orderBy(QItem.item.id.desc())
+                .orderBy(qItem.id.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .fetchResults();
+                .fetch();
 
-        List<ItemMngDto> items = results.getResults();
-        long total = results.getTotal();
-        return new PageImpl<>(items, pageable, total);
+        // 2. COUNT 조회
+        Long total = queryFactory
+                .select(qItem.count())
+                .from(qItem)
+                .where(regDtsAfter(itemSearchDto.getSearchDateType()),
+                        searchSellStatusEq(itemSearchDto.getSearchSellStatus()),
+                        searchByLike(itemSearchDto.getSearchBy(),
+                                itemSearchDto.getSearchQuery()))
+                .fetchOne();
+
+        return new PageImpl<>(items, pageable, total != null ? total : 0L);
     }
 
     private BooleanExpression itemNmLike(String searchQuery){
@@ -86,7 +95,8 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
         QItem item = QItem.item;
         QItemImg itemImg = QItemImg.itemImg;
 
-        QueryResults<MainItemDto> results = queryFactory
+        // 1. 데이터 조회 (명시적)
+        List<MainItemDto> content = queryFactory
                 .select(new QMainItemDto(item.id, item.itemNm, item.itemDetail, itemImg.imgUrl, item.price))
                 .from(itemImg)
                 .join(itemImg.item, item)
@@ -95,10 +105,17 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
                 .orderBy(item.id.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .fetchResults();
+                .fetch(); // fetch() 사용
 
-        List<MainItemDto> content = results.getResults();
-        long total = results.getTotal();
-        return new PageImpl<>(content, pageable, total);
+        // 2. COUNT 조회 (명시적)
+        Long total = queryFactory
+                .select(item.count())
+                .from(itemImg)
+                .join(itemImg.item, item)
+                .where(itemImg.repImgYn.eq("Y"))
+                .where(itemNmLike(itemSearchDto.getSearchQuery()))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 }
