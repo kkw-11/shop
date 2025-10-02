@@ -1,38 +1,42 @@
 <div th:fragment="header" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-    <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
-        <button class="navbar-toggler" type="button" data-toggle="collapse"
-                data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03"
-                aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <a class="navbar-brand" href="/">Kmarket</a>
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-sm navbar-dark" style="background-color: #27ae60;">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-toggle="collapse"
+                    data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand mr-4" href="/">Kmarket</a>
 
-        <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
-            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-                <li class="nav-item" sec:authorize="hasAnyAuthority('ROLE_ADMIN')">
-                    <a class="nav-link" href="/admin/item/new">상품 등록</a>
-                </li>
-                <li class="nav-item" sec:authorize="hasAnyAuthority('ROLE_ADMIN')">
-                    <a class="nav-link" href="/admin/items">상품 관리</a>
-                </li>
-                <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" href="/cart">장바구니</a>
-                </li>
-                <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" href="/orders">구매내역</a>
-                </li>
-                <li class="nav-item" sec:authorize="isAnonymous()">
-                    <a class="nav-link" href="/members/login">로그인</a>
-                </li>
-                <!-- 수정: 로그아웃 링크를 JavaScript를 사용하여 POST 요청으로 처리 -->
-                <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();">로그아웃</a>
-                </li>
-            </ul>
-            <form class="form-inline my-2 my-lg-0" th:action="@{/}" method="get">
-                <input name="searchQuery" class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-            </form>
+            <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+                <form class="form-inline my-2 my-lg-0" th:action="@{/}" method="get" style="flex: 0 0 auto; width: 500px;">
+                    <input name="searchQuery" class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" style="width: 400px;">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                </form>
+
+                <ul class="navbar-nav ms-auto mt-2 mt-lg-0 ml-auto">
+                    <li class="nav-item" sec:authorize="hasAnyAuthority('ROLE_ADMIN')">
+                        <a class="nav-link" href="/admin/item/new">상품 등록</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAnyAuthority('ROLE_ADMIN')">
+                        <a class="nav-link" href="/admin/items">상품 관리</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a class="nav-link" href="/cart">장바구니</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a class="nav-link" href="/orders">구매내역</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAnonymous()">
+                        <a class="nav-link" href="/members/login">로그인</a>
+                    </li>
+                    <!-- 수정: 로그아웃 링크를 JavaScript를 사용하여 POST 요청으로 처리 -->
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a class="nav-link" href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();">로그아웃</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 

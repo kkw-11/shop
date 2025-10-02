@@ -24,3 +24,20 @@ body {
     margin-left: 200px;
     margin-right: 200px;
 }
+
+/* pagination */
+.page-item.active .page-link {
+    background-color: #27ae60 !important;
+    border-color: #27ae60 !important;
+    color: white !important;
+}
+
+.page-link {
+    color: #27ae60;
+}
+
+.page-link:hover {
+    background-color: #52be80;
+    border-color: #27ae60;
+    color: white;
+}
