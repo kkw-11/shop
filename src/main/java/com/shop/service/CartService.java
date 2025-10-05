@@ -92,17 +92,15 @@ public class CartService {
         cartItemRepository.delete(cartItem);
     }
 
-    public Long orderCartItem(List<CartOrderDto> cartOrderDtoList, String email) {
+    public Long orderCartItem(List<Long> cartItemIds, String email) {
 
-        List<Long> cartItemId = cartOrderDtoList.stream().map(CartOrderDto::getCartItemId).collect(Collectors.toList());
-
-        Map<Long, CartItem> cartItemMap = cartItemRepository.findAllById(cartItemId)
+        Map<Long, CartItem> cartItemMap = cartItemRepository.findAllById(cartItemIds)
                 .stream().collect(Collectors.toMap(CartItem::getId, cartItem -> cartItem));
 
-        List<OrderDto> orderDtoList = cartOrderDtoList.stream().map(cartOrderDto -> {
-            CartItem cartItem = cartItemMap.get(cartOrderDto.getCartItemId());
+        List<OrderDto> orderDtoList = cartItemIds.stream().map(cartItemId -> {
+            CartItem cartItem = cartItemMap.get(cartItemId);
             if(cartItem == null){
-                throw new EntityNotFoundException("요청된 장바구니 상품 ID " + cartOrderDto.getCartItemId() + "를 찾을 수 없습니다.");
+                throw new EntityNotFoundException("요청된 장바구니 상품 ID " + cartItemId + "를 찾을 수 없습니다.");
             }
             OrderDto orderDto = new OrderDto(cartItem.getItem().getId(), cartItem.getCount());
             return orderDto;
@@ -110,11 +108,7 @@ public class CartService {
 
         Long orderId = orderService.orders(orderDtoList, email);
 
-        List<Long> cartItemIdsToDelete = cartOrderDtoList.stream()
-                .map(CartOrderDto::getCartItemId)
-                .collect(Collectors.toList());
-
-        cartItemRepository.deleteAllByIdInBatch(cartItemIdsToDelete); // 1회 쿼리
+        cartItemRepository.deleteAllByIdInBatch(cartItemIds); // 1회 쿼리
 
         return orderId;
     }

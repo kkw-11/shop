@@ -106,21 +106,21 @@ public class CartController {
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public @ResponseBody ResponseEntity orderCartItem(@RequestBody CartOrderDto cartOrderDto, Principal principal){
-        List<CartOrderDto> cartOrderDtoList = cartOrderDto.getCartOrderDtoList();
+        List<Long> cartItemIds = cartOrderDto.getCartItemIds();
 
-        if(cartOrderDtoList == null || cartOrderDtoList.size() == 0){
+        if(cartItemIds == null || cartItemIds.size() == 0){
             ErrorResponse errorResponse = new ErrorResponse("주문할 상품을 선택해주세요.");
             return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
         }
 
-        for(CartOrderDto cartOrder : cartOrderDtoList){
-            if(!cartService.validateCartItem(cartOrder.getCartItemId(), principal.getName())){
+        for(Long cartItem : cartItemIds){
+            if(!cartService.validateCartItem(cartItem, principal.getName())){
                 ErrorResponse errorResponse = new ErrorResponse("주문 권한이 없습니다.");
                 return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.FORBIDDEN);
             }
         }
 
-        Long orderId = cartService.orderCartItem(cartOrderDtoList, principal.getName());
+        Long orderId = cartService.orderCartItem(cartItemIds, principal.getName());
 
         return new ResponseEntity<>(orderId, HttpStatus.OK);
     }
