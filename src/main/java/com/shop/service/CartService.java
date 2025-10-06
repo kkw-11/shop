@@ -17,7 +17,8 @@ import org.thymeleaf.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -91,22 +92,22 @@ public class CartService {
         cartItemRepository.delete(cartItem);
     }
 
-    public Long orderCartItem(List<CartOrderDto> cartOrderDtoList, String email) {
-        List<OrderDto> orderDtoList = new ArrayList<>();
-        cartOrderDtoList.stream().forEach(cartOrderDto -> {
-            CartItem cartItem = cartItemRepository.findById(cartOrderDto.getCartItemId()).orElseThrow(EntityNotFoundException::new);
-            OrderDto orderDto = new OrderDto();
-            orderDto.setItemId(cartItem.getItem().getId());
-            orderDto.setCount(cartItem.getCount());
-            orderDtoList.add(orderDto);
-        });
+    public Long orderCartItem(List<Long> cartItemIds, String email) {
+        Map<Long, CartItem> cartItemMap = cartItemRepository.findAllById(cartItemIds)
+                .stream().collect(Collectors.toMap(CartItem::getId, cartItem -> cartItem));
+
+        List<OrderDto> orderDtoList = cartItemIds.stream().map(cartItemId -> {
+            CartItem cartItem = cartItemMap.get(cartItemId);
+            if(cartItem == null){
+                throw new EntityNotFoundException("요청된 장바구니 상품 ID " + cartItemId + "를 찾을 수 없습니다.");
+            }
+            OrderDto orderDto = new OrderDto(cartItem.getItem().getId(), cartItem.getCount());
+            return orderDto;
+        }).collect(Collectors.toList());
 
         Long orderId = orderService.orders(orderDtoList, email);
 
-        cartOrderDtoList.stream().forEach(cartOrderDto -> {
-            CartItem cartItem = cartItemRepository.findById(cartOrderDto.getCartItemId()).orElseThrow(EntityNotFoundException::new);
-            cartItemRepository.deleteById(cartItem.getId());
-        });
+        cartItemRepository.deleteAllByIdInBatch(cartItemIds); // 1회 쿼리
 
         return orderId;
     }

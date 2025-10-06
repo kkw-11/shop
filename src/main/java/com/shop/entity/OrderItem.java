@@ -1,8 +1,11 @@
 package com.shop.entity;
 
+import com.shop.dto.OrderDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Map;
 
 @Entity
 @Table(name = "order_item")
@@ -32,6 +35,20 @@ public class OrderItem extends BaseEntity {
         orderItem.setOrderPrice(item.getPrice());
 
         item.removeStock(count);
+        return orderItem;
+    }
+
+    public static OrderItem createOrderItem(OrderDto orderDto, Map<Long, Item> itemMap) {
+        OrderItem orderItem = new OrderItem();
+        Item item = itemMap.get(orderDto.getItemId());
+
+        if (item == null) {
+            throw new EntityNotFoundException("요청된 상품 ID " + orderDto.getItemId() + "를 찾을 수 없습니다.");
+        }
+
+        orderItem.setItem(item);
+        orderItem.setOrderPrice(item.getPrice());
+        orderItem.setCount(orderDto.getCount());
         return orderItem;
     }
 

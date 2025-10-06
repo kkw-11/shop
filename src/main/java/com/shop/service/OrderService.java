@@ -17,6 +17,8 @@ import org.thymeleaf.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -84,12 +86,17 @@ public class OrderService {
 
     public Long orders(List<OrderDto> orderDtoList, String email) {
         Member member = memberRepository.findByEmail(email);
-        List<OrderItem> orderItemList = new ArrayList<>();
-        orderDtoList.stream().forEach(orderDto -> {{
-            Item item = itemRepository.findById(orderDto.getItemId()).orElseThrow(EntityNotFoundException::new);
-            OrderItem orderItem = OrderItem.createOrderItem(item, orderDto.getCount());
-            orderItemList.add(orderItem);
-        }});
+
+        List<Long> itemIds = orderDtoList.stream()
+                .map(OrderDto::getItemId)
+                .collect(Collectors.toList());
+
+        Map<Long, Item> itemMap = itemRepository.findAllById(itemIds).stream()
+                .collect(Collectors.toMap(Item::getId, item -> item));
+
+        List<OrderItem> orderItemList = orderDtoList.stream()
+                .map(orderDto -> OrderItem.createOrderItem(orderDto, itemMap))
+                .collect(Collectors.toList());
 
         Order order = Order.createOrder(member, orderItemList);
         orderRepository.save(order);

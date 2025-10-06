@@ -124,12 +124,10 @@
 
             $("input[name=cartChkBox]:checked").each(function() {
                 var cartItemId = $(this).val();
-                var data = new Object();
-                data["cartItemId"] = cartItemId;
-                dataList.push(data);
+                dataList.push(cartItemId);
             });
 
-            paramData['cartOrderDtoList'] = dataList;
+            paramData['cartItemIds'] = dataList;
 
             var param = JSON.stringify(paramData);
 

@@ -3,10 +3,14 @@ package com.shop.dto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class OrderDto {
     @NotNull(message = "상품 아이디는 필수 입력 값입니다.")
     private Long itemId;
