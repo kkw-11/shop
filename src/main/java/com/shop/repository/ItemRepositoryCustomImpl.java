@@ -55,7 +55,6 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
     }
 
 
-    //todo: offset 기반 쿼리 성능 테스트
     @Override
     public Page<ItemMngDto> getItemMngPage(ItemSearchDto itemSearchDto, Pageable pageable) {
         QItem qItem = QItem.item;
