@@ -93,7 +93,6 @@ public class CartService {
     }
 
     public Long orderCartItem(List<Long> cartItemIds, String email) {
-
         Map<Long, CartItem> cartItemMap = cartItemRepository.findAllById(cartItemIds)
                 .stream().collect(Collectors.toMap(CartItem::getId, cartItem -> cartItem));
 
