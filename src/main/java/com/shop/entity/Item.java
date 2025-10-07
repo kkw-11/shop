@@ -22,8 +22,8 @@ public class Item extends BaseEntity {
     private String itemNm;
     @Column(name="price", nullable = false)
     private int price;
-    @Column(nullable = false)
-    private int stockNumber;
+    @Column(name = "stock_number", nullable = false)
+    private Integer stockNumber;
     @Lob
     @Column(nullable = false)
     private String itemDetail;
