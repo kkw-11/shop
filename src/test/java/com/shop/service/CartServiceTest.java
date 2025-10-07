@@ -84,7 +84,7 @@ class CartServiceTest {
         CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(RuntimeException::new);
 
         assertEquals(item.getId(), cartItem.getItem().getId());
-        assertEquals(cartItemDto.getCount(), cartItem.getCount());
+        assertEquals(cartItemDto.getCount(), cartItem.getQuantity());
 
     }
 
@@ -102,10 +102,10 @@ class CartServiceTest {
 
         CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(RuntimeException::new);
 
-        int count = cartItem.getCount() + 1;
+        int count = cartItem.getQuantity() + 1;
         cartService.updateCartItemCount(cartItemId, count);
 
-        assertEquals(count, cartItem.getCount());
+        assertEquals(count, cartItem.getQuantity());
 
     }
 

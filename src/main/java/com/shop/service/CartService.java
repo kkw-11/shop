@@ -2,7 +2,6 @@ package com.shop.service;
 
 import com.shop.dto.CartDetailDto;
 import com.shop.dto.CartItemDto;
-import com.shop.dto.CartOrderDto;
 import com.shop.dto.OrderDto;
 import com.shop.entity.*;
 import com.shop.repository.CartItemRepository;
@@ -44,7 +43,7 @@ public class CartService {
         CartItem savedCartItem = cartItemRepository.findByCartIdAndItemId(cart.getId(), item.getId());
 
         if(savedCartItem != null) {
-            savedCartItem.addCount(cartItemDto.getCount());
+            savedCartItem.addQuantity(cartItemDto.getCount());
             return savedCartItem.getId();
         } else {
             CartItem cartItem = CartItem.createCartItem(cart, item, cartItemDto.getCount());
@@ -101,7 +100,7 @@ public class CartService {
             if(cartItem == null){
                 throw new EntityNotFoundException("요청된 장바구니 상품 ID " + cartItemId + "를 찾을 수 없습니다.");
             }
-            OrderDto orderDto = new OrderDto(cartItem.getItem().getId(), cartItem.getCount());
+            OrderDto orderDto = new OrderDto(cartItem.getItem().getId(), cartItem.getQuantity());
             return orderDto;
         }).collect(Collectors.toList());
 

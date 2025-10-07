@@ -56,7 +56,7 @@ class OrderTest {
             itemRepository.save(item);
             OrderItem orderItem = new OrderItem();
             orderItem.setItem(item);
-            orderItem.setCount(10);
+            orderItem.setQuantity(10);
             orderItem.setOrderPrice(item.getPrice());
             orderItem.setOrder(order);
             order.getOrderItems().add(orderItem);
@@ -80,7 +80,7 @@ class OrderTest {
             itemRepository.save(item);
             OrderItem orderItem = new OrderItem();
             orderItem.setItem(item);
-            orderItem.setCount(10);
+            orderItem.setQuantity(10);
             orderItem.setOrderPrice(item.getPrice());
             orderItem.setOrder(order);
             order.getOrderItems().add(orderItem);

@@ -23,22 +23,23 @@ public class CartItem extends BaseEntity {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    private int count;
+    @Column(name = "quantity")
+    private Integer quantity;
 
-    public static CartItem createCartItem(Cart cart, Item item, int count) {
+    public static CartItem createCartItem(Cart cart, Item item, int quantity) {
         CartItem cartItem = new CartItem();
         cartItem.setCart(cart);
         cartItem.setItem(item);
-        cartItem.setCount(count);
+        cartItem.setQuantity(quantity);
         return cartItem;
     }
 
-    public void addCount(int count) {
-        this.count += count;
+    public void addQuantity(int quantity) {
+        this.quantity += quantity;
     }
 
 
-    public void updateCount(int count){
-        this.count = count;
+    public void updateCount(int quantity){
+        this.quantity = quantity;
     }
 }
