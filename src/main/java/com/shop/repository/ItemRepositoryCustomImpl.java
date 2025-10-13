@@ -6,7 +6,7 @@ import com.shop.constant.ItemSellStatus;
 import com.shop.dto.*;
 import com.shop.entity.QItem;
 import com.shop.entity.QItemImg;
-import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -15,12 +15,9 @@ import org.thymeleaf.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@RequiredArgsConstructor
 public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
     private final JPAQueryFactory queryFactory;
-
-    public ItemRepositoryCustomImpl(EntityManager em) {
-        this.queryFactory = new JPAQueryFactory(em);
-    }
 
     private BooleanExpression searchSellStatusEq(ItemSellStatus searchSellStatus) {
         return searchSellStatus == null ? null : QItem.item.itemSellStatus.eq(searchSellStatus);
