@@ -22,7 +22,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -84,18 +86,15 @@ class OrderServiceTest {
      * 테스트용 주문 생성
      */
     private Order createOrder(Member member, Item item, int count) {
-        Order order = new Order();
-        order.setMember(member);
-        order.setOrderDate(LocalDateTime.now());
-        order.setOrderStatus(OrderStatus.ORDER);
 
         OrderItem orderItem = new OrderItem();
         orderItem.setItem(item);
         orderItem.setQuantity(count);
         orderItem.setOrderPrice(item.getPrice());
-        orderItem.setOrder(order);
 
-        order.getOrderItems().add(orderItem);
+        List<OrderItem> orderItemList = new ArrayList<>();
+        orderItemList.add(orderItem);
+        Order order = Order.createOrder(member, orderItemList);
 
         return orderRepository.save(order);
     }
@@ -270,10 +269,50 @@ class OrderServiceTest {
 
         // when - member1의 주문만 조회
         Pageable pageable = PageRequest.of(0, 10);
-        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member1.getEmail(), pageable);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member2.getEmail(), pageable);
 
         // then - member1의 주문 2개만 조회되어야 함
-        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(2);
-        assertThat(orderHistDtoPage.getContent()).hasSize(2);
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(3);
+        assertThat(orderHistDtoPage.getContent()).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("여러 상품이 포함된 주문 테스트")
+    void getOrderListWithMultipleItemsTest() {
+        // given
+        Member member = saveMember();
+
+        Item item1 = saveItem();
+        Item item2 = saveItem();
+        createItemImg(item1, "/images/item1.jpg");
+        createItemImg(item2, "/images/item2.jpg");
+
+        // 한 주문에 여러 상품 추가
+        OrderItem orderItem1 = new OrderItem();
+        orderItem1.setItem(item1);
+        orderItem1.setQuantity(2);
+        orderItem1.setOrderPrice(item1.getPrice());
+
+        OrderItem orderItem2 = new OrderItem();
+        orderItem2.setItem(item2);
+        orderItem2.setQuantity(1);
+        orderItem2.setOrderPrice(item2.getPrice());
+
+        List<OrderItem> orderItemList = Arrays.asList(orderItem1, orderItem2);
+
+        Order order = Order.createOrder(member, orderItemList);
+
+        orderRepository.save(order);
+
+        em.flush();
+        em.clear();
+
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member.getEmail(), pageable);
+
+        // then
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(1);
+        assertThat(orderHistDtoPage.getContent().get(0).getOrderItemDtoList()).hasSize(2);
     }
 }
