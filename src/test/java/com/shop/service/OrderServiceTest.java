@@ -194,4 +194,22 @@ class OrderServiceTest {
         assertThat(orderHistDtoPage.getTotalPages()).isEqualTo(3);
         assertThat(orderHistDtoPage.getNumber()).isEqualTo(0);
     }
+
+    @Test
+    @DisplayName("주문 내역이 없는 경우 테스트")
+    void getOrderListEmptyTest() {
+        // given
+        Member member = saveMember();
+
+        em.flush();
+        em.clear();
+
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member.getEmail(), pageable);
+
+        // then
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(0);
+        assertThat(orderHistDtoPage.getContent()).isEmpty();
+    }
 }
