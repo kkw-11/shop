@@ -241,4 +241,39 @@ class OrderServiceTest {
         assertThat(orderHistDtoPage.getContent().get(1).getOrderId())
                 .isGreaterThan(orderHistDtoPage.getContent().get(2).getOrderId());
     }
+
+    @Test
+    @DisplayName("다른 회원의 주문은 조회되지 않는 테스트")
+    void getOrderListOnlyOwnOrdersTest() {
+        // given
+        Member member1 = saveMember();
+
+        // 두 번째 회원 생성
+        Member member2 = new Member();
+        member2.setEmail("other@test.com");
+        memberRepository.save(member2);
+
+        Item item = saveItem();
+        createItemImg(item, "/images/item.jpg");
+
+        // member1 주문 2개
+        createOrder(member1, item, 1);
+        createOrder(member1, item, 1);
+
+        // member2 주문 3개
+        createOrder(member2, item, 1);
+        createOrder(member2, item, 1);
+        createOrder(member2, item, 1);
+
+        em.flush();
+        em.clear();
+
+        // when - member1의 주문만 조회
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member1.getEmail(), pageable);
+
+        // then - member1의 주문 2개만 조회되어야 함
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(2);
+        assertThat(orderHistDtoPage.getContent()).hasSize(2);
+    }
 }
