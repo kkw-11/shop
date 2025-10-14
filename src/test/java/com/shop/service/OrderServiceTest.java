@@ -2,23 +2,29 @@ package com.shop.service;
 
 import com.shop.constant.ItemSellStatus;
 import com.shop.constant.OrderStatus;
-import com.shop.controller.OrderController;
 import com.shop.dto.OrderDto;
-import com.shop.entity.Item;
-import com.shop.entity.Member;
-import com.shop.entity.Order;
+import com.shop.dto.OrderHistDto;
+import com.shop.entity.*;
+import com.shop.repository.ItemImgRepository;
 import com.shop.repository.ItemRepository;
 import com.shop.repository.MemberRepository;
 import com.shop.repository.OrderRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -38,7 +44,10 @@ class OrderServiceTest {
     private MemberRepository memberRepository;
 
     @Autowired
-    private OrderController orderController;
+    private ItemImgRepository itemImgRepository;
+
+    @Autowired
+    private EntityManager em;
 
     public Item saveItem(){
         Item item = new Item();
@@ -56,6 +65,39 @@ class OrderServiceTest {
         member.setEmail("test@test.com");
         memberRepository.save(member);
         return member;
+    }
+
+    /**
+     * 테스트용 상품 이미지 생성
+     */
+    private ItemImg createItemImg(Item item, String imgUrl) {
+        ItemImg itemImg = new ItemImg();
+        itemImg.setItem(item);
+        itemImg.setImgName("test.jpg");
+        itemImg.setOriImgName("test.jpg");
+        itemImg.setImgUrl(imgUrl);
+        itemImg.setRepImgYn("Y");
+        return itemImgRepository.save(itemImg);
+    }
+
+    /**
+     * 테스트용 주문 생성
+     */
+    private Order createOrder(Member member, Item item, int count) {
+        Order order = new Order();
+        order.setMember(member);
+        order.setOrderDate(LocalDateTime.now());
+        order.setOrderStatus(OrderStatus.ORDER);
+
+        OrderItem orderItem = new OrderItem();
+        orderItem.setItem(item);
+        orderItem.setQuantity(count);
+        orderItem.setOrderPrice(item.getPrice());
+        orderItem.setOrder(order);
+
+        order.getOrderItems().add(orderItem);
+
+        return orderRepository.save(order);
     }
 
     @Test
@@ -93,5 +135,36 @@ class OrderServiceTest {
 
         assertEquals(OrderStatus.CANCEL, order.getOrderStatus());
         assertEquals(100, item.getStockNumber());
+    }
+
+    @Test
+    @DisplayName("주문 목록 조회 테스트")
+    void getOrderListTest() {
+        // given
+        Member member = saveMember();
+
+        Item item1 = saveItem();
+        Item item2 = saveItem();
+        Item item3 = saveItem();
+
+        createItemImg(item1, "/images/item1.jpg");
+        createItemImg(item2, "/images/item2.jpg");
+        createItemImg(item3, "/images/item3.jpg");
+
+        createOrder(member, item1, 2);
+        createOrder(member, item2, 1);
+        createOrder(member, item3, 3);
+
+        em.flush();
+        em.clear();
+
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member.getEmail(), pageable);
+
+        // then
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(3);
+        assertThat(orderHistDtoPage.getContent()).hasSize(3);
+        assertThat(orderHistDtoPage.getContent().get(0).getOrderItemDtoList()).isNotEmpty();
     }
 }
