@@ -167,4 +167,31 @@ class OrderServiceTest {
         assertThat(orderHistDtoPage.getContent()).hasSize(3);
         assertThat(orderHistDtoPage.getContent().get(0).getOrderItemDtoList()).isNotEmpty();
     }
+
+    @Test
+    @DisplayName("주문 목록 페이징 테스트")
+    void getOrderListPagingTest() {
+        // given
+        Member member = saveMember();
+        Item item = saveItem();
+        createItemImg(item, "/images/item.jpg");
+
+        // 주문 5개 생성
+        for (int i = 0; i < 5; i++) {
+            createOrder(member, item, 1);
+        }
+
+        em.flush();
+        em.clear();
+
+        // when - 페이지당 2개씩, 첫 번째 페이지 조회
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member.getEmail(), pageable);
+
+        // then
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(5);
+        assertThat(orderHistDtoPage.getContent()).hasSize(2);
+        assertThat(orderHistDtoPage.getTotalPages()).isEqualTo(3);
+        assertThat(orderHistDtoPage.getNumber()).isEqualTo(0);
+    }
 }
