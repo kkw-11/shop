@@ -212,4 +212,33 @@ class OrderServiceTest {
         assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(0);
         assertThat(orderHistDtoPage.getContent()).isEmpty();
     }
+
+    @Test
+    @DisplayName("주문 최신순 정렬 테스트")
+    void getOrderListOrderByDateDescTest() {
+        // given
+        Member member = saveMember();
+        Item item = saveItem();
+        createItemImg(item, "/images/item.jpg");
+
+        // 주문 3개 생성
+        createOrder(member, item, 1);
+        createOrder(member, item, 1);
+        createOrder(member, item, 1);
+
+        em.flush();
+        em.clear();
+
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member.getEmail(), pageable);
+
+        // then
+        assertThat(orderHistDtoPage.getContent()).hasSize(3);
+        // 최신 주문이 먼저 나와야 함 (desc 정렬)
+        assertThat(orderHistDtoPage.getContent().get(0).getOrderId())
+                .isGreaterThan(orderHistDtoPage.getContent().get(1).getOrderId());
+        assertThat(orderHistDtoPage.getContent().get(1).getOrderId())
+                .isGreaterThan(orderHistDtoPage.getContent().get(2).getOrderId());
+    }
 }
