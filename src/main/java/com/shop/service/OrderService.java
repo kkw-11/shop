@@ -47,8 +47,8 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public Page<OrderHistDto> getOrderList(String email, Pageable pageable) {
-        List<Order> orders = orderRepository.findOrders(email, pageable);
-        Long totalCount = orderRepository.countOrders(email);
+        List<Order> orders = orderRepository.findOrdersByEmail(email, pageable);
+        Long totalCount = orderRepository.countOrdersByEmail(email);
         List<OrderHistDto> orderHistDtoList = new ArrayList<>();
 
         for(Order order : orders){
