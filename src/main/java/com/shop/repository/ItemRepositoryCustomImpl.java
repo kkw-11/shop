@@ -83,6 +83,21 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
+    @Override
+    public List<Item> findByItemDetail(String itemDetail) {
+        QItem item = QItem.item;
+
+        return queryFactory
+                .selectFrom(item)
+                .where(itemDetailContains(itemDetail))
+                .orderBy(item.price.desc())
+                .fetch();
+    }
+
+    private BooleanExpression itemDetailContains(String itemDetail) {
+        return StringUtils.isEmpty(itemDetail) ? null : QItem.item.itemDetail.contains(itemDetail);
+    }
+
     private BooleanExpression searchSellStatusEq(ItemSellStatus searchSellStatus) {
         return searchSellStatus == null ? null : QItem.item.itemSellStatus.eq(searchSellStatus);
     }
