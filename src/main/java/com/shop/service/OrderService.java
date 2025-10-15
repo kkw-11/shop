@@ -47,10 +47,15 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public Page<OrderHistDto> getOrderList(String email, Pageable pageable) {
+        log.info("===== 주문 목록 조회 시작 =====");
+
+        log.info("1. findOrdersByEmail 호출");
         List<Order> orders = orderRepository.findOrdersByEmail(email, pageable);
+        log.info("2. countOrdersByEmail 호출");
         Long totalCount = orderRepository.countOrdersByEmail(email);
         List<OrderHistDto> orderHistDtoList = new ArrayList<>();
 
+        log.info("주문별 조회");
         for(Order order : orders){
             OrderHistDto orderHistDto = new OrderHistDto(order);
             List<OrderItem> orderItems = order.getOrderItems();
