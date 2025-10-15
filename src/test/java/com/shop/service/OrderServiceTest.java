@@ -284,16 +284,8 @@ class OrderServiceTest {
         createItemImg(item2, "/images/item2.jpg");
 
         // 한 주문에 여러 상품 추가
-        OrderItem orderItem1 = new OrderItem();
-        orderItem1.setItem(item1);
-        orderItem1.setQuantity(2);
-        orderItem1.setOrderPrice(item1.getPrice());
-
-        OrderItem orderItem2 = new OrderItem();
-        orderItem2.setItem(item2);
-        orderItem2.setQuantity(1);
-        orderItem2.setOrderPrice(item2.getPrice());
-
+        OrderItem orderItem1 = OrderItem.createOrderItem(item1, 2);
+        OrderItem orderItem2 = OrderItem.createOrderItem(item2, 1);
         List<OrderItem> orderItemList = Arrays.asList(orderItem1, orderItem2);
 
         Order order = Order.createOrder(member, orderItemList);
