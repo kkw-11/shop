@@ -85,15 +85,11 @@ class OrderServiceTest {
     /**
      * 테스트용 주문 생성
      */
-    private Order createOrder(Member member, Item item, int count) {
-
-        OrderItem orderItem = new OrderItem();
-        orderItem.setItem(item);
-        orderItem.setQuantity(count);
-        orderItem.setOrderPrice(item.getPrice());
-
+    private Order createOrder(Member member, Item item, int quantity) {
+        OrderItem orderItem = OrderItem.createOrderItem(item, quantity);
         List<OrderItem> orderItemList = new ArrayList<>();
         orderItemList.add(orderItem);
+
         Order order = Order.createOrder(member, orderItemList);
 
         return orderRepository.save(order);
