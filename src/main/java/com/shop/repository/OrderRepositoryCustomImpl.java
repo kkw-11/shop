@@ -39,7 +39,6 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
                 .distinct()
                 .join(order.orderItems, orderItem).fetchJoin()
                 .join(orderItem.item, item).fetchJoin()
-                .leftJoin(item.itemImgs, itemImg).fetchJoin()
                 .where(order.id.in(orderIds))
                 .orderBy(order.regTime.desc())
                 .fetch();
