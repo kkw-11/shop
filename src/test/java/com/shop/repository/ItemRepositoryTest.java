@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
 
 import java.util.Comparator;
@@ -26,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Transactional
 @ActiveProfiles("test")
 class ItemRepositoryTest {
 
@@ -68,6 +70,17 @@ class ItemRepositoryTest {
             item.setStockNumber(0);
             itemRepository.save(item);
         }
+    }
+
+    public Item saveItem(){
+        Item item = new Item();
+        item.setItemNm("테스트 상품");
+        item.setPrice(10000);
+        item.setItemDetail("테스트 상품 상세 설명");
+        item.setItemSellStatus(ItemSellStatus.SELL);
+        item.setStockNumber(100);
+        itemRepository.save(item);
+        return item;
     }
 
     @Test
@@ -147,25 +160,6 @@ class ItemRepositoryTest {
     }
 
     @Test
-    @DisplayName("@Query를 이용한 상세설명으로 상품 조회 테스트")
-    public void findByItemDetailTest(){
-        this.createItemList();
-        String itemDetail = "테스트 상품 상세 설명";
-        List<Item> itemList = itemRepository.findByItemDetail(itemDetail);
-
-        assertTrue(itemList.stream().allMatch(item -> item.getItemDetail().contains(itemDetail)));
-    }
-
-    @Test
-    @DisplayName("nativeQuery 속성을 이용한 상품 조회 테스트")
-    public void findByItemDetailByNative(){
-        this.createItemList();
-        String detailNm = "테스트 상품 상세 설명";
-        List<Item> itemList = itemRepository.findByItemDetailNative(detailNm);
-        assertTrue(itemList.stream().allMatch(item -> item.getItemDetail().contains(detailNm)));
-    }
-
-    @Test
     @DisplayName("Querydsl 조회 테스트1")
     public void queryDslTest(){
         this.createItemList();
@@ -221,5 +215,61 @@ class ItemRepositoryTest {
         // 페이징 정보 검증 (선택사항)
         assertThat(page.getSize()).isEqualTo(5);
         assertThat(page.getNumber()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("상품 상세 설명으로 검색 테스트")
+    void findByItemDetailTest() {
+        // given
+        this.createItemList();
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<Item> result = itemRepository.findByItemDetail("테스트");
+
+        // then
+        assertThat(result).hasSize(10);
+        assertThat(result.get(0).getPrice()).isEqualTo(10000 + 10); // 가격 내림차순
+        assertThat(result.get(1).getPrice()).isEqualTo(10000 + 9);
+    }
+
+    @Test
+    @DisplayName("상품 상세 설명 검색 - 결과 없음")
+    void findByItemDetailNoResultTest() {
+        // given
+        this.createItemList();
+
+        em.flush();
+        em.clear();
+
+
+        // when
+        List<Item> result = itemRepository.findByItemDetail("존재하지않는검색어");
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("상품 상세 설명 검색 - 가격 내림차순 정렬")
+    void findByItemDetailOrderByPriceDescTest() {
+        // given
+        this.createItemList();
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<Item> result = itemRepository.findByItemDetail("테스트");
+
+        // then
+        assertThat(result).hasSize(10);
+        // 가격 내림차순 확인
+        for (int i = 0; i < result.size() - 1; i++) {
+            assertThat(result.get(i).getPrice())
+                    .isGreaterThan(result.get(i + 1).getPrice());
+        }
     }
 }

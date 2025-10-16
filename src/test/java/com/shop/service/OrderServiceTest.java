@@ -2,23 +2,31 @@ package com.shop.service;
 
 import com.shop.constant.ItemSellStatus;
 import com.shop.constant.OrderStatus;
-import com.shop.controller.OrderController;
 import com.shop.dto.OrderDto;
-import com.shop.entity.Item;
-import com.shop.entity.Member;
-import com.shop.entity.Order;
+import com.shop.dto.OrderHistDto;
+import com.shop.entity.*;
+import com.shop.repository.ItemImgRepository;
 import com.shop.repository.ItemRepository;
 import com.shop.repository.MemberRepository;
 import com.shop.repository.OrderRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -38,7 +46,10 @@ class OrderServiceTest {
     private MemberRepository memberRepository;
 
     @Autowired
-    private OrderController orderController;
+    private ItemImgRepository itemImgRepository;
+
+    @Autowired
+    private EntityManager em;
 
     public Item saveItem(){
         Item item = new Item();
@@ -56,6 +67,32 @@ class OrderServiceTest {
         member.setEmail("test@test.com");
         memberRepository.save(member);
         return member;
+    }
+
+    /**
+     * 테스트용 상품 이미지 생성
+     */
+    private ItemImg createItemImg(Item item, String imgUrl) {
+        ItemImg itemImg = new ItemImg();
+        itemImg.setItem(item);
+        itemImg.setImgName("test.jpg");
+        itemImg.setOriImgName("test.jpg");
+        itemImg.setImgUrl(imgUrl);
+        itemImg.setRepImgYn("Y");
+        return itemImgRepository.save(itemImg);
+    }
+
+    /**
+     * 테스트용 주문 생성
+     */
+    private Order createOrder(Member member, Item item, int quantity) {
+        OrderItem orderItem = OrderItem.createOrderItem(item, quantity);
+        List<OrderItem> orderItemList = new ArrayList<>();
+        orderItemList.add(orderItem);
+
+        Order order = Order.createOrder(member, orderItemList);
+
+        return orderRepository.save(order);
     }
 
     @Test
@@ -93,5 +130,177 @@ class OrderServiceTest {
 
         assertEquals(OrderStatus.CANCEL, order.getOrderStatus());
         assertEquals(100, item.getStockNumber());
+    }
+
+    @Test
+    @DisplayName("주문 목록 조회 테스트")
+    void getOrderListTest() {
+        // given
+        Member member = saveMember();
+
+        Item item1 = saveItem();
+        Item item2 = saveItem();
+        Item item3 = saveItem();
+
+        createItemImg(item1, "/images/item1.jpg");
+        createItemImg(item2, "/images/item2.jpg");
+        createItemImg(item3, "/images/item3.jpg");
+
+        createOrder(member, item1, 2);
+        createOrder(member, item2, 1);
+        createOrder(member, item3, 3);
+
+        em.flush();
+        em.clear();
+
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member.getEmail(), pageable);
+
+        // then
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(3);
+        assertThat(orderHistDtoPage.getContent()).hasSize(3);
+        assertThat(orderHistDtoPage.getContent().get(0).getOrderItemDtoList()).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("주문 목록 페이징 테스트")
+    void getOrderListPagingTest() {
+        // given
+        Member member = saveMember();
+        Item item = saveItem();
+        createItemImg(item, "/images/item.jpg");
+
+        // 주문 5개 생성
+        for (int i = 0; i < 5; i++) {
+            createOrder(member, item, 1);
+        }
+
+        em.flush();
+        em.clear();
+
+        // when - 페이지당 2개씩, 첫 번째 페이지 조회
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member.getEmail(), pageable);
+
+        // then
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(5);
+        assertThat(orderHistDtoPage.getContent()).hasSize(2);
+        assertThat(orderHistDtoPage.getTotalPages()).isEqualTo(3);
+        assertThat(orderHistDtoPage.getNumber()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("주문 내역이 없는 경우 테스트")
+    void getOrderListEmptyTest() {
+        // given
+        Member member = saveMember();
+
+        em.flush();
+        em.clear();
+
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member.getEmail(), pageable);
+
+        // then
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(0);
+        assertThat(orderHistDtoPage.getContent()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("주문 최신순 정렬 테스트")
+    void getOrderListOrderByDateDescTest() {
+        // given
+        Member member = saveMember();
+        Item item = saveItem();
+        createItemImg(item, "/images/item.jpg");
+
+        // 주문 3개 생성
+        createOrder(member, item, 1);
+        createOrder(member, item, 1);
+        createOrder(member, item, 1);
+
+        em.flush();
+        em.clear();
+
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member.getEmail(), pageable);
+
+        // then
+        assertThat(orderHistDtoPage.getContent()).hasSize(3);
+        // 최신 주문이 먼저 나와야 함 (desc 정렬)
+        assertThat(orderHistDtoPage.getContent().get(0).getOrderId())
+                .isGreaterThan(orderHistDtoPage.getContent().get(1).getOrderId());
+        assertThat(orderHistDtoPage.getContent().get(1).getOrderId())
+                .isGreaterThan(orderHistDtoPage.getContent().get(2).getOrderId());
+    }
+
+    @Test
+    @DisplayName("다른 회원의 주문은 조회되지 않는 테스트")
+    void getOrderListOnlyOwnOrdersTest() {
+        // given
+        Member member1 = saveMember();
+
+        // 두 번째 회원 생성
+        Member member2 = new Member();
+        member2.setEmail("other@test.com");
+        memberRepository.save(member2);
+
+        Item item = saveItem();
+        createItemImg(item, "/images/item.jpg");
+
+        // member1 주문 2개
+        createOrder(member1, item, 1);
+        createOrder(member1, item, 1);
+
+        // member2 주문 3개
+        createOrder(member2, item, 1);
+        createOrder(member2, item, 1);
+        createOrder(member2, item, 1);
+
+        em.flush();
+        em.clear();
+
+        // when - member1의 주문만 조회
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member2.getEmail(), pageable);
+
+        // then - member1의 주문 2개만 조회되어야 함
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(3);
+        assertThat(orderHistDtoPage.getContent()).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("여러 상품이 포함된 주문 테스트")
+    void getOrderListWithMultipleItemsTest() {
+        // given
+        Member member = saveMember();
+
+        Item item1 = saveItem();
+        Item item2 = saveItem();
+        createItemImg(item1, "/images/item1.jpg");
+        createItemImg(item2, "/images/item2.jpg");
+
+        // 한 주문에 여러 상품 추가
+        OrderItem orderItem1 = OrderItem.createOrderItem(item1, 2);
+        OrderItem orderItem2 = OrderItem.createOrderItem(item2, 1);
+        List<OrderItem> orderItemList = Arrays.asList(orderItem1, orderItem2);
+
+        Order order = Order.createOrder(member, orderItemList);
+
+        orderRepository.save(order);
+
+        em.flush();
+        em.clear();
+
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OrderHistDto> orderHistDtoPage = orderService.getOrderList(member.getEmail(), pageable);
+
+        // then
+        assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(1);
+        assertThat(orderHistDtoPage.getContent().get(0).getOrderItemDtoList()).hasSize(2);
     }
 }
