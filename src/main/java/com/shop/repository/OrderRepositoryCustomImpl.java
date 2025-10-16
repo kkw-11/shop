@@ -7,7 +7,10 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+import static com.shop.entity.QItem.item;
+import static com.shop.entity.QItemImg.itemImg;
 import static com.shop.entity.QOrder.order;
+import static com.shop.entity.QOrderItem.orderItem;
 
 @RequiredArgsConstructor
 public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
@@ -21,7 +24,7 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
                 .select(order.id)
                 .from(order)
                 .where(order.member.email.eq(email))
-                .orderBy(order.orderDate.desc())
+                .orderBy(order.regTime.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -34,11 +37,11 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
         return queryFactory
                 .selectFrom(order)
                 .distinct()
-                .join(order.orderItems).fetchJoin()
-                .join(order.orderItems.any().item).fetchJoin()
-                .leftJoin(order.orderItems.any().item.itemImgs).fetchJoin()
+                .join(order.orderItems, orderItem).fetchJoin()
+                .join(orderItem.item, item).fetchJoin()
+                .leftJoin(item.itemImgs, itemImg).fetchJoin()
                 .where(order.id.in(orderIds))
-                .orderBy(order.orderDate.desc())
+                .orderBy(order.regTime.desc())
                 .fetch();
     }
 
