@@ -16,12 +16,29 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
 
     @Override
     public List<Order> findOrdersByEmail(String email, Pageable pageable) {
-        return queryFactory
-                .selectFrom(order)
+        // 1단계: ID만 페이징 (DB 페이징)
+        List<Long> orderIds = queryFactory
+                .select(order.id)
+                .from(order)
                 .where(order.member.email.eq(email))
                 .orderBy(order.orderDate.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
+                .fetch();
+
+        if (orderIds.isEmpty()) {
+            return List.of();
+        }
+
+        // 2단계: Fetch Join (IN 쿼리)
+        return queryFactory
+                .selectFrom(order)
+                .distinct()
+                .join(order.orderItems).fetchJoin()
+                .join(order.orderItems.any().item).fetchJoin()
+                .leftJoin(order.orderItems.any().item.itemImgs).fetchJoin()
+                .where(order.id.in(orderIds))
+                .orderBy(order.orderDate.desc())
                 .fetch();
     }
 
