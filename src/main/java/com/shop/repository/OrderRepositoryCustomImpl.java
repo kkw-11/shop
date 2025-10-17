@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 import static com.shop.entity.QItem.item;
-import static com.shop.entity.QItemImg.itemImg;
 import static com.shop.entity.QOrder.order;
 import static com.shop.entity.QOrderItem.orderItem;
 
