@@ -2,7 +2,6 @@ package com.shop.controller;
 
 import com.shop.dto.OrderDto;
 import com.shop.dto.OrderHistDto;
-import com.shop.repository.OrderRepository;
 import com.shop.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,7 +28,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Tag(name = "주문", description = "주문 관련 API")
 public class OrderController {
-    private final OrderRepository orderRepository;
     private final OrderService orderService;
 
     @PostMapping(value = "/order")
