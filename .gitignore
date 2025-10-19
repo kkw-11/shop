@@ -35,6 +35,7 @@ build/
 ### 로컬 전용 파일 ###
 src/main/java/com/shop/config/WebMvcConfig.java
 src/main/java/com/shop/controller/ThymeleafExController.java
+src/main/java/com/shop/controller/TestController.java
 src/main/java/com/shop/controller/TempController.java
 src/main/resources/templates/thymeleafEx/*
 
