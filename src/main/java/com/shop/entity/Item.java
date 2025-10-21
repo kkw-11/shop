@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name="item")
 @Getter
@@ -29,6 +32,9 @@ public class Item extends BaseEntity {
     private String itemDetail;
     @Enumerated(EnumType.STRING)
     private ItemSellStatus itemSellStatus;
+
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ItemImg> itemImgs = new ArrayList<>();
 
     public void updateItem(ItemFormDto itemFormDto) {
         this.itemNm = itemFormDto.getItemNm();
