@@ -10,7 +10,8 @@
 
 ### 1-1. 프로젝트 아키텍처
 - 아키텍처
- ![img.png](img.png)
+ <img width="1231" height="845" alt="image" src="https://github.com/user-attachments/assets/72a8bfaa-baf4-4bb1-9fc4-5de9087ae274" />
+
 - ERD
   <img width="1588" height="1096" alt="image" src="https://github.com/user-attachments/assets/3aff1dc9-8544-4260-be7c-14a65027be8f" />
 
