@@ -317,4 +317,92 @@ class CartServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getImgUrl()).isEqualTo("/images/rep.jpg");  // 대표 이미지만
     }
+
+    @Test
+    @DisplayName("장바구니에서 주문 시 재고 감소 테스트")
+    void orderCartItemDecreaseStockTest() {
+        // given
+        Member member = createMember();
+        
+        Item item1 = createItem("상품1", 10000);
+        Item item2 = createItem("상품2", 20000);
+        Item item3 = createItem("상품3", 30000);
+        
+        int initialStock1 = item1.getStockNumber();
+        int initialStock2 = item2.getStockNumber();
+        int initialStock3 = item3.getStockNumber();
+
+        CartItemDto cartItemDto1 = new CartItemDto();
+        cartItemDto1.setItemId(item1.getId());
+        cartItemDto1.setCount(5);
+        
+        CartItemDto cartItemDto2 = new CartItemDto();
+        cartItemDto2.setItemId(item2.getId());
+        cartItemDto2.setCount(3);
+        
+        CartItemDto cartItemDto3 = new CartItemDto();
+        cartItemDto3.setItemId(item3.getId());
+        cartItemDto3.setCount(7);
+
+        Long cartItemId1 = cartService.addCart(cartItemDto1, member.getEmail());
+        Long cartItemId2 = cartService.addCart(cartItemDto2, member.getEmail());
+        Long cartItemId3 = cartService.addCart(cartItemDto3, member.getEmail());
+
+        List<Long> cartItemIds = List.of(cartItemId1, cartItemId2, cartItemId3);
+
+        // when
+        Long orderId = cartService.orderCartItem(cartItemIds, member.getEmail());
+
+        // then
+        em.flush();
+        em.clear();
+        
+        Item orderedItem1 = itemRepository.findById(item1.getId()).orElseThrow();
+        Item orderedItem2 = itemRepository.findById(item2.getId()).orElseThrow();
+        Item orderedItem3 = itemRepository.findById(item3.getId()).orElseThrow();
+        
+        assertThat(orderedItem1.getStockNumber()).isEqualTo(initialStock1 - 5);
+        assertThat(orderedItem2.getStockNumber()).isEqualTo(initialStock2 - 3);
+        assertThat(orderedItem3.getStockNumber()).isEqualTo(initialStock3 - 7);
+        
+        // 주문이 정상적으로 생성되었는지 확인
+        Order order = orderRepository.findById(orderId).orElseThrow();
+        assertThat(order.getOrderItems()).hasSize(3);
+        
+        // 장바구니에서 제거되었는지 확인
+        List<CartItem> remainingCartItems = cartItemRepository.findAllById(cartItemIds);
+        assertThat(remainingCartItems).isEmpty();
+    }
+
+    @Test
+    @DisplayName("장바구니 주문 시 재고 부족 예외 테스트")
+    void orderCartItemOutOfStockExceptionTest() {
+        // given
+        Member member = createMember();
+        
+        Item item = createItem("테스트 상품", 10000);
+        item.setStockNumber(5); // 재고 5개로 설정
+        itemRepository.save(item);
+        
+        CartItemDto cartItemDto = new CartItemDto();
+        cartItemDto.setItemId(item.getId());
+        cartItemDto.setCount(10); // 10개 장바구니에 담기
+
+        Long cartItemId = cartService.addCart(cartItemDto, member.getEmail());
+
+        // when & then
+        assertThrows(com.shop.exception.OutOfStockException.class, () -> {
+            cartService.orderCartItem(List.of(cartItemId), member.getEmail());
+        });
+        
+        // 재고는 변경되지 않아야 함
+        em.flush();
+        em.clear();
+        Item unchangedItem = itemRepository.findById(item.getId()).orElseThrow();
+        assertThat(unchangedItem.getStockNumber()).isEqualTo(5);
+        
+        // 장바구니 아이템도 그대로 남아있어야 함
+        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow();
+        assertThat(cartItem.getQuantity()).isEqualTo(10);
+    }
 }

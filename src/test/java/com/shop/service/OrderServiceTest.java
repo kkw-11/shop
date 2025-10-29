@@ -103,13 +103,13 @@ class OrderServiceTest {
 
         OrderDto orderDto = new OrderDto();
         orderDto.setItemId(item.getId());
-        orderDto.setCount(10);
+        orderDto.setQuantity(10);
 
         Long orderId = orderService.order(orderDto, member.getEmail());
 
         Order order = orderRepository.findById(orderId).orElseThrow(EntityNotFoundException::new);
 
-        int totalPrice = orderDto.getCount() * item.getPrice();
+        int totalPrice = orderDto.getQuantity() * item.getPrice();
 
         assertEquals(totalPrice, order.getTotalPrice());
     }
@@ -122,7 +122,7 @@ class OrderServiceTest {
 
         OrderDto orderDto = new OrderDto();
         orderDto.setItemId(item.getId());
-        orderDto.setCount(10);
+        orderDto.setQuantity(10);
         Long orderId = orderService.order(orderDto, member.getEmail());
 
         Order order = orderRepository.findById(orderId).orElseThrow(EntityNotFoundException::new);
@@ -302,5 +302,105 @@ class OrderServiceTest {
         // then
         assertThat(orderHistDtoPage.getTotalElements()).isEqualTo(1);
         assertThat(orderHistDtoPage.getContent().get(0).getOrderItemDtoList()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("주문 시 재고 감소 테스트")
+    void orderDecreaseStockTest() {
+        // given
+        Item item = saveItem();
+        Member member = saveMember();
+        
+        int initialStock = item.getStockNumber();
+        int orderQuantity = 10;
+
+        OrderDto orderDto = new OrderDto();
+        orderDto.setItemId(item.getId());
+        orderDto.setQuantity(orderQuantity);
+
+        // when
+        Long orderId = orderService.order(orderDto, member.getEmail());
+
+        // then
+        em.flush();
+        em.clear();
+        
+        Item orderedItem = itemRepository.findById(item.getId()).orElseThrow();
+        assertThat(orderedItem.getStockNumber()).isEqualTo(initialStock - orderQuantity);
+    }
+
+    @Test
+    @DisplayName("여러 상품 주문 시 재고 감소 테스트")
+    void ordersDecreaseStockTest() {
+        // given
+        Member member = saveMember();
+        
+        Item item1 = saveItem();
+        Item item2 = saveItem();
+        Item item3 = saveItem();
+        
+        int initialStock1 = item1.getStockNumber();
+        int initialStock2 = item2.getStockNumber();
+        int initialStock3 = item3.getStockNumber();
+
+        List<OrderDto> orderDtoList = new ArrayList<>();
+        
+        OrderDto orderDto1 = new OrderDto();
+        orderDto1.setItemId(item1.getId());
+        orderDto1.setQuantity(5);
+        orderDtoList.add(orderDto1);
+        
+        OrderDto orderDto2 = new OrderDto();
+        orderDto2.setItemId(item2.getId());
+        orderDto2.setQuantity(10);
+        orderDtoList.add(orderDto2);
+        
+        OrderDto orderDto3 = new OrderDto();
+        orderDto3.setItemId(item3.getId());
+        orderDto3.setQuantity(15);
+        orderDtoList.add(orderDto3);
+
+        // when
+        Long orderId = orderService.orders(orderDtoList, member.getEmail());
+
+        // then
+        em.flush();
+        em.clear();
+        
+        Item orderedItem1 = itemRepository.findById(item1.getId()).orElseThrow();
+        Item orderedItem2 = itemRepository.findById(item2.getId()).orElseThrow();
+        Item orderedItem3 = itemRepository.findById(item3.getId()).orElseThrow();
+        
+        assertThat(orderedItem1.getStockNumber()).isEqualTo(initialStock1 - 5);
+        assertThat(orderedItem2.getStockNumber()).isEqualTo(initialStock2 - 10);
+        assertThat(orderedItem3.getStockNumber()).isEqualTo(initialStock3 - 15);
+        
+        Order order = orderRepository.findById(orderId).orElseThrow();
+        assertThat(order.getOrderItems()).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("재고 부족 시 주문 실패 테스트")
+    void orderOutOfStockExceptionTest() {
+        // given
+        Item item = saveItem();
+        Member member = saveMember();
+        
+        item.setStockNumber(5); // 재고를 5개로 설정
+        
+        OrderDto orderDto = new OrderDto();
+        orderDto.setItemId(item.getId());
+        orderDto.setQuantity(10); // 10개 주문 시도
+
+        // when & then
+        assertThrows(com.shop.exception.OutOfStockException.class, () -> {
+            orderService.order(orderDto, member.getEmail());
+        });
+        
+        // 재고는 변경되지 않아야 함
+        em.flush();
+        em.clear();
+        Item unchangedItem = itemRepository.findById(item.getId()).orElseThrow();
+        assertThat(unchangedItem.getStockNumber()).isEqualTo(5);
     }
 }

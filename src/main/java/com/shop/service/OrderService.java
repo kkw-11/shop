@@ -36,7 +36,7 @@ public class OrderService {
 
         List<OrderItem> orderItemList = new ArrayList<>();
 
-        OrderItem orderItem = OrderItem.createOrderItem(item, orderDto.getCount());
+        OrderItem orderItem = OrderItem.createOrderItem(item, orderDto.getQuantity());
         orderItemList.add(orderItem);
 
         Order order = Order.createOrder(member, orderItemList);
