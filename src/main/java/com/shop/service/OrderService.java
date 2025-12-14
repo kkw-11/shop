@@ -55,11 +55,13 @@ public class OrderService {
         Long totalCount = orderRepository.countOrdersByEmail(email);
         List<OrderHistDto> orderHistDtoList = new ArrayList<>();
 
-        log.info("주문별 조회");
         for(Order order : orders){
+            log.info("주문별 상품 목록 조회");
             OrderHistDto orderHistDto = new OrderHistDto(order);
+            log.info("3. getOrderItems 호출");
             List<OrderItem> orderItems = order.getOrderItems();
             for(OrderItem orderItem : orderItems){
+                log.info("4.findByItemIdAndRepImgYn 호출");
                 ItemImg itemImg = itemImgRepository.findByItemIdAndRepImgYn(orderItem.getItem().getId(), "Y");
                 OrderItemDto orderItemDto = new OrderItemDto(orderItem, itemImg.getImgUrl());
                 orderHistDto.addOrderItemDto(orderItemDto);
