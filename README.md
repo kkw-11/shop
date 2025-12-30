@@ -76,6 +76,11 @@
 
 1-5. API 문서화
 
-- **Swagger UI**: http://34.182.127.192/swagger-ui/index.html#/
+- **Swagger UI**: http://34.168.163.93//swagger-ui/index.html#/
 - 비동기 처리 API (장바구니, 주문) 중심 문서화
 - SSR 기반 웹 애플리케이션의 AJAX 통신 인터페이스
+
+
+1-6. 향후 계획
+- JPQL -> QueryDSL 전환
+- 확장성을 고려한 RESTAPI 서버, Multi-Module 아키텍처로 전환 후 점진적 MSA 전환
