@@ -112,7 +112,7 @@ class CartServiceTest {
         Member member = createMember();
 
         CartItemDto cartItemDto = new CartItemDto();
-        cartItemDto.setCount(5);
+        cartItemDto.setQuantity(5);
         cartItemDto.setItemId(item.getId());
 
         Long cartItemId = cartService.addCart(cartItemDto, member.getEmail());
@@ -120,7 +120,7 @@ class CartServiceTest {
         CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(RuntimeException::new);
 
         assertEquals(item.getId(), cartItem.getItem().getId());
-        assertEquals(cartItemDto.getCount(), cartItem.getQuantity());
+        assertEquals(cartItemDto.getQuantity(), cartItem.getQuantity());
 
     }
 
@@ -131,7 +131,7 @@ class CartServiceTest {
         Member member = createMember();
 
         CartItemDto cartItemDto = new CartItemDto();
-        cartItemDto.setCount(4);
+        cartItemDto.setQuantity(4);
         cartItemDto.setItemId(item.getId());
 
         Long cartItemId = cartService.addCart(cartItemDto, member.getEmail());
@@ -154,7 +154,7 @@ class CartServiceTest {
         List<CartItemDto> cartItemDtoList = items.stream().map(item -> {
             CartItemDto cartItemDto = new CartItemDto();
             cartItemDto.setItemId(item.getId());
-            cartItemDto.setCount(1);
+            cartItemDto.setQuantity(1);
             return cartItemDto;
         }).collect(Collectors.toList());
 
@@ -334,15 +334,15 @@ class CartServiceTest {
 
         CartItemDto cartItemDto1 = new CartItemDto();
         cartItemDto1.setItemId(item1.getId());
-        cartItemDto1.setCount(5);
+        cartItemDto1.setQuantity(5);
         
         CartItemDto cartItemDto2 = new CartItemDto();
         cartItemDto2.setItemId(item2.getId());
-        cartItemDto2.setCount(3);
+        cartItemDto2.setQuantity(3);
         
         CartItemDto cartItemDto3 = new CartItemDto();
         cartItemDto3.setItemId(item3.getId());
-        cartItemDto3.setCount(7);
+        cartItemDto3.setQuantity(7);
 
         Long cartItemId1 = cartService.addCart(cartItemDto1, member.getEmail());
         Long cartItemId2 = cartService.addCart(cartItemDto2, member.getEmail());
@@ -386,7 +386,7 @@ class CartServiceTest {
         
         CartItemDto cartItemDto = new CartItemDto();
         cartItemDto.setItemId(item.getId());
-        cartItemDto.setCount(10); // 10개 장바구니에 담기
+        cartItemDto.setQuantity(10); // 10개 장바구니에 담기
 
         Long cartItemId = cartService.addCart(cartItemDto, member.getEmail());
 
