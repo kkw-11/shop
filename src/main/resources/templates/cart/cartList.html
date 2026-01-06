@@ -241,7 +241,7 @@
                                       th:text="${cartItem.price} + '원'" class="align-self-center mr-2">
                                 </span>
                                 <input type="number" name="count" th:id="'count_' + ${cartItem.cartItemId}"
-                                       th:value="${cartItem.count}" min="1"
+                                       th:value="${cartItem.quantity}" min="1"
                                        onchange="changeCount(this)" class="form-control mr-2" >
                                 <button type="button" class="close" aria-label="Close">
                                     <span aria-hidden="true" th:data-id="${cartItem.cartItemId}" onclick="deleteCartItem(this)">&times;</span>
